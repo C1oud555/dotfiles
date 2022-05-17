@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: theorm
+# key: the
+# --
+#+begin_theorem
+$0
+#+end_theorem
