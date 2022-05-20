@@ -34,6 +34,8 @@
 (package! helm-bibtex :disable t)
 ;; (package! pipenv :disable t)
 
+(package! valign)
+(package! pipenv :disable t)
 
 (package! org-roam-bibtex
   :recipe (:host github :repo "org-roam/org-roam-bibtex"))

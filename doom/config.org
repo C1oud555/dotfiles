@@ -10,15 +10,15 @@
 #+end_src
 ** Font Sets
 #+begin_src emacs-lisp
-(setq! doom-font (font-spec :family "Monaco" :size 15 :weight 'normal :width 'normal)
-       doom-variable-pitch-font (font-spec :family "Monaco" :size 15 :weight 'normal :width 'normal)
+(setq! doom-font (font-spec :family "Monaco" :size 18 :weight 'normal :width 'normal)
+       doom-variable-pitch-font (font-spec :family "Monaco" :size 18 :weight 'normal :width 'normal)
        doom-big-font (font-spec :family "Monaco" :szie 26))
-(defun init-cjk-fonts()
-  (if (display-graphic-p)
-      (dolist (charset '(kana han cjk-misc bopomofo))
-        (set-fontset-font (frame-parameter nil 'font)
-                          charset (font-spec :family "Hiragino Sans GB" :size 18)))))
-(add-hook 'doom-init-ui-hook #'init-cjk-fonts)
+;; (defun init-cjk-fonts()
+;;   (if (display-graphic-p)
+;;       (dolist (charset '(kana han cjk-misc bopomofo))
+;;         (set-fontset-font (frame-parameter nil 'font)
+;;                           charset (font-spec :family "Hiragino Sans GB" :size 18)))))
+;; (add-hook 'doom-init-ui-hook #'init-cjk-fonts)
 #+end_src
 
 ** Theme Sets
@@ -39,7 +39,7 @@
        split-height-threshold nil
        split-width-threshold 10
        mac-pass-command-to-system nil)
-(add-to-list 'initial-frame-alist '(fullscreen . maximized))
+;; (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 #+end_src
 *** CAPF file path
 #+begin_src emacs-lisp
@@ -66,7 +66,7 @@
 #+begin_src emacs-lisp
 (setq! org-directory "~/Documents/org"
        org-preview-latex-default-process 'dvisvgm
-       ;; org-highlight-latex-and-related '(native)
+       ;; org-highlight-latex-and-related '(latex script entities)
        org-latex-pdf-process '("latexmk -f -pdf -xelatex -interaction=nonstopmode -output-directory=%o %f")
        org-file-apps '((auto-mode . emacs)
                        (directory . emacs)
@@ -78,7 +78,20 @@
                             ("_" underline)
                             ("=" org-verbatim verbatim)
                             ("~" org-code verbatim)
-                            ("+" (:strike-through t))))
+                            ("+" (:strike-through t)))
+       org-format-latex-options '(:foreground default
+                                  :background default
+                                  :scale 2.0
+                                  :html-foreground "Black"
+                                  :html-background "Transparent"
+                                  :html-scale 1.0
+                                  :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
+;; For align chinese character
+(add-hook 'org-mode-hook #'valign-mode)
+;; Evil math in latex math in org mode
+(evil-define-key '(visual operator) evil-org-mode-map
+  "im" #'evil-tex-inner-math
+  "am" #'evil-tex-a-math)
 #+end_src
 *** Org-crypt
 #+begin_src emacs-lisp
@@ -403,17 +416,21 @@ If nil it defaults to `split-string-default-separators', normally
 (setq! +latex-viewers '(pdf-tools)
        reftex-default-bibliography (expand-file-name "bib/references.bib" org-directory)
        TeX-command-extra-options "-view=none")
+#+end_src
+*** cd Latex sets
+#+begin_src emacs-lisp
 (map! :map cdlatex-mode-map
       :i "TAB" #'cdlatex-tab)
+(setq! cdlatex-command-alist '(("fra" "Insert \\frac{}{}" "\\frac{?}{}" cdlatex-position-cursor nil nil t)))
 #+end_src
 ** Company Sets
 #+begin_src emacs-lisp
-(after! company (setq! company-idle-delay 0.2))
+;; (after! company (setq! company-idle-delay 1.0))
 #+end_src
 ** Which-key Sets
 #+begin_src emacs-lisp
-(after! which-key (setq! which-key-idle-delay 1.0
-                         which-key-max-description-length 80))
+;; (after! which-key (setq! which-key-idle-delay 1.0
+;;                          which-key-max-description-length 80))
 #+end_src
 ** Smartparrens
 #+begin_src emacs-lisp

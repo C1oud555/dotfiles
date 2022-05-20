@@ -1,0 +1,55 @@
+# Brew ZSH completion
+if type brew &>/dev/null
+then
+  FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+
+  autoload -Uz compinit
+  compinit
+fi
+# export HOMEBREW_INSTALL_FROM_API=1
+
+# Mcfly init
+eval "$(mcfly init zsh)"
+
+# Starship
+eval "$(starship init zsh)"
+
+# Zoxide
+eval "$(zoxide init zsh)"
+
+# direnv
+eval "$(direnv hook zsh)"
+
+# Zsh-autosuggestions And zsh-syntax-highlighting
+source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# PATH setup
+export PATH="/opt/homebrew/bin:$PATH"
+export PATH="/opt/homebrew/opt/sqlite/bin:$PATH"
+export PATH="/Users/luohongyang/.local/bin:$PATH"
+export PATH="/Users/luohongyang/Library/Application Support/Coursier/bin:$PATH"
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+
+# Proxy 
+export https_proxy=http://127.0.0.1:21882 http_proxy=http://127.0.0.1:21882 all_proxy=socks5://127.0.0.1:21882
+
+# Finder
+alias owd="open ."
+
+# Ls but better
+alias ls="exa"
+alias la="exa -a"
+alias ll="exa -lah"
+alias l="exa -lh"
+alias tree="exa --tree"
+
+# Cat but better
+alias cat="bat"
+
+# Completion case insensive
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+
+# Setting for the new UTF-8 terminal support in Lion
+LC_CTYPE=en_US.UTF-8
+LC_ALL=en_US.UTF-8
