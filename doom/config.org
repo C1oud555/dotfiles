@@ -1,5 +1,4 @@
 #+TITLE: Org-Mode Literate Config
-#+EXPORT_FILE_NAME: README
 
 * Hyluo's Emacs Config.org based on Doom Emacs
 ** Self-Introduction
@@ -10,8 +9,8 @@
 #+end_src
 ** Font Sets
 #+begin_src emacs-lisp
-(setq! doom-font (font-spec :family "Monaco" :size 18 :weight 'normal :width 'normal)
-       doom-variable-pitch-font (font-spec :family "Monaco" :size 18 :weight 'normal :width 'normal)
+(setq! doom-font (font-spec :family "Monaco" :size 16 :weight 'normal :width 'normal)
+       doom-variable-pitch-font (font-spec :family "Monaco" :size 16 :weight 'normal :width 'normal)
        doom-big-font (font-spec :family "Monaco" :szie 26))
 ;; (defun init-cjk-fonts()
 ;;   (if (display-graphic-p)
@@ -38,8 +37,9 @@
 (setq! display-line-numbers-type t
        split-height-threshold nil
        split-width-threshold 10
+       mouse-autoselect-window t
        mac-pass-command-to-system nil)
-;; (add-to-list 'initial-frame-alist '(fullscreen . maximized))
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
 #+end_src
 *** CAPF file path
 #+begin_src emacs-lisp
@@ -435,4 +435,26 @@ If nil it defaults to `split-string-default-separators', normally
 ** Smartparrens
 #+begin_src emacs-lisp
 (sp-local-pair 'org-mode "$" "$")
+#+end_src
+** LSP
+#+begin_src emacs-lisp
+(add-hook! lsp-mode-hook (map! :leader
+                               :desc "lsp-avy-lens"
+                               "c l l" #'lsp-avy-lens))
+#+end_src
+*** verilog
+#+begin_src emacs-lisp
+(require 'lsp-verilog)
+(add-hook 'verilog-mode-hook #'lsp-deferred)
+#+end_src
+*** rust
+#+begin_src emacs-lisp
+(setq! lsp-rust-analyzer-server-display-inlay-hints t)
+#+end_src
+
+*** scala
+#+begin_src emacs-lisp
+(setq! lsp-metals-show-inferred-type t
+       lsp-metals-show-implicit-arguments t
+       lsp-metals-show-implicit-conversions-and-classes t)
 #+end_src

@@ -1,6 +1,6 @@
 eval "$(/opt/homebrew/bin/brew shellenv)"
-export CPATH=/opt/homebrew/Cellar/verilator/4.220/share/verilator/include
+export CPATH="/opt/homebrew/include/"
 export JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home/"
-export CPPFLAGS="-I/opt/homebrew/opt/openjdk/include"
-export EA_EDITOR='/opt/homebrew/bin/emacsclient -a "" -c'
+# export CPATH="$CAPTH:/opt/homebrew/opt/verilator/share/verilator/include"
 
+. "$HOME/.cargo/env"
