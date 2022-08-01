@@ -1,8 +1,20 @@
 {
+  "localparameter": {
+    "prefix": "lpara",
+    "body": "localparam ${1:var} = ${2:value};"
+  },
+  "parameter": {
+    "prefix": "para",
+    "body": "parameter ${1:var} = ${2:value},"
+  },
+  "assign": {
+    "prefix": "assign",
+    "body": "assign ${1:var} = ${2:value};"
+  },
 	"always_ff block": {
 		"prefix": "always_ff",
 		"body": [
-			"always_ff @( ${1:clock} ) begin : ${2:blockName}",
+			"always_ff @(posedge ${1:clk} or negedge ${2:rst_n}) begin",
 			"\t$0",
 			"end"
 		],
@@ -11,20 +23,20 @@
 	"always_comb block": {
 		"prefix": "always_comb",
 		"body": [
-			"always_comb begin : ${1:blockName}",
+			"always_comb begin",
 			"\t$0",
 			"end"
 		],
 		"description": "Insert an always_comb block"
 	},
-	"always_latch block": {
-		"prefix": "always_latch",
+	"always": {
+		"prefix": "always",
 		"body": [
-			"always_latch begin : ${1:blockName}",
+			"always@(${1:sensitivity_list}) begin",
 			"\t$0",
 			"end"
 		],
-		"description": "Insert an always_latch block"
+		"description": "Insert an always_comb block"
 	},
 	"bit": {
 		"prefix": "bit",
@@ -186,5 +198,145 @@
 			"join"
 		],
 		"description": "fork ... join"
-	}
+	},
+  "if": {
+    "prefix": "if",
+    "body": [
+      "if (${1:condition}) begin",
+      "\t${2}",
+      "end $0"
+    ]
+  },
+  "if/else": {
+    "prefix": "if/else",
+    "body": [
+      "if (${1:condition}) begin",
+      "\t${2}",
+      "end else begin",
+      "\t${3}",
+      "end"
+    ]
+  },
+  "elseif": {
+    "prefix": "else if",
+    "body": [
+      "else if (${1:condition}) begin",
+      "\t$0",
+      "end"
+    ]
+  },
+  "else": {
+    "prefix": "else",
+    "body": [
+      "else begin",
+      "\t$0",
+      "end"
+    ]
+  },
+  "case": {
+    "prefix": "case",
+    "body": [
+      "case (${1:variable})",
+      "\t${0}",
+      "\tdefault: begin",
+      "\t\t${3:default_case}",
+      "\tend",
+      "endcase"
+    ]
+  },
+  "for-loop": {
+    "prefix": "for",
+    "body": [
+      "for (int ${1:i}=0; ${1:i} < ${2:MAX}; ${1:i}++) begin : ${3:blockname}",
+      "\t${0}",
+      "end"
+    ]
+  },
+  "function": {
+        "prefix": "function",
+        "body": [
+            "function ${1:return_value} ${2:name}(${3:port_list});",
+            "\t${0}",
+            "endfunction"
+        ],
+        "description": "Snippet for a function definition"
+    },
+    "task": {
+        "prefix": "task",
+        "body": [
+            "task ${1:name}(${2:port_list});",
+            "\t${0}",
+            "endtask"
+        ],
+        "description": "Snippet for a task definition"
+    },
+    "module": {
+        "prefix": "module",
+        "body": [
+            "module ${1:name} (",
+            "\t${2:port_list}",
+            ");",
+            "\t${0}",
+            "endmodule"
+        ],
+        "description": "Snippet for a module definition"
+    },
+    "module#(param)": {
+        "prefix": "module #(",
+        "body": [
+            "module ${1:name} #(",
+            "\t${2:parameters}",
+            ") (",
+            "\t${3:port_list}",
+            ");",
+            "\t${0}",
+            "endmodule"
+        ],
+        "description": "Snippet for a parameterized module definition"
+    },
+    "generate": {
+        "prefix": "generate",
+        "body": [
+            "generate",
+            "\t${0}",
+            "endgenerate"
+        ],
+        "description": "Snippet for a generate block"
+    },
+    "typedef/struct": {
+        "prefix": "typedef/struct",
+        "body": [
+            "typedef struct packed {",
+            "\t${0}",
+            "} ${1:name};"
+        ],
+        "description": "Snippet for a structure type definition"
+    },
+    "separator": {
+        "prefix": "separator",
+        "body": [
+            "// -------------------------------------------------------\n$0"
+        ],
+        "description": "Snippet for a separator"
+    },
+    "heading": {
+        "prefix": "heading",
+        "body": [
+            "// -------------------------------------------------------",
+            "// -- ${1:heading}",
+            "// -------------------------------------------------------\n$0"
+        ],
+        "description": "Snippet for a heading"
+    },
+    "heading+description": {
+        "prefix": "heading+description",
+        "body": [
+            "// -------------------------------------------------------",
+            "// -- ${1:heading}",
+            "// -------------------------------------------------------",
+            "// ${2:description}",
+            "// -------------------------------------------------------\n$0"
+        ],
+        "description": "Snippet for a heading with a block for description"
+    }
 }

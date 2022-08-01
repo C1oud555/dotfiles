@@ -28,6 +28,11 @@ return {
       config = function()
          require "custom.plugins.confs.null-ls"
       end,
- }
+ },
+  ["kylechui/nvim-surround"] = {
+    config = function()
+      require("nvim-surround").setup{}
+    end
+  }
 }
 

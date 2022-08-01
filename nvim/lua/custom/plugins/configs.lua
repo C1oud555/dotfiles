@@ -6,6 +6,9 @@ M.treesitter = {
     "verilog",
     "rust",
     "scala",
+    "comment",
+    "c",
+    "cpp"
   }
 }
 
