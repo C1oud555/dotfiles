@@ -7,7 +7,11 @@ end
 local b = null_ls.builtins
 
 local sources = {
-  b.formatting.verible_verilog_format
+  b.formatting.verible_verilog_format,
+  b.formatting.clang_format,
+  b.formatting.scalafmt,
+  b.formatting.rustfmt,
+  b.formatting.autopep8
 }
 
 null_ls.setup {

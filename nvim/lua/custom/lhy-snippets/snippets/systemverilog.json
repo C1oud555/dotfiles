@@ -1,4 +1,8 @@
 {
+  "comment": {
+    "prefix": "/*",
+    "body": "/* ${1:comment} */"
+  },
   "localparameter": {
     "prefix": "lpara",
     "body": "localparam ${1:var} = ${2:value};"
@@ -10,6 +14,22 @@
   "assign": {
     "prefix": "assign",
     "body": "assign ${1:var} = ${2:value};"
+  },
+  "begin/end" :{
+    "prefix": "begin",
+    "body": [
+      "begin",
+      "\t$0",
+      "end"
+    ]
+  },
+  "initial block": {
+    "prefix": "initial",
+    "body": [
+      "initial begin",
+      "\t$0",
+      "end"
+    ]
   },
 	"always_ff block": {
 		"prefix": "always_ff",
@@ -127,7 +147,7 @@
 	"interface": {
 		"prefix": "interface",
 		"body": [
-			"interface ${1:interfacename};",
+			"interface ${1:interfacename}(${2:portdecs});",
 			"\t$0",
 			"endinterface //$1"
 		],
