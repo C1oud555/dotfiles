@@ -13,7 +13,7 @@ M.plugins = {
   },
   remove = {
     "williamboman/mason.nvim",
-  }
+  },
 }
 
 M.mappings = require "custom.mappings"

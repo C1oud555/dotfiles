@@ -4,37 +4,37 @@ M.defaultIME = "com.apple.keylayout.ABC"
 M.currentIME = ""
 -- My IME Change Func
 M.getCurrentIME = function()
-   if vim.fn.has "macunix" == 1 then
-      local handle = io.popen "im-select"
-      M.currentIME = handle:read "*a"
-      handle:close()
-   end
+  if vim.fn.has "macunix" == 1 then
+    local handle = io.popen "im-select"
+    M.currentIME = handle:read "*a"
+    handle:close()
+  end
 end
 
 M.recoverIME = function()
-   if vim.fn.has "macunix" == 1 then
-      local handle = io.popen("im-select " .. M.currentIME)
-      handle:close()
-   end
+  if vim.fn.has "macunix" == 1 then
+    local handle = io.popen("im-select " .. M.currentIME)
+    handle:close()
+  end
 end
 
 M.setDefaultIME = function()
-   if vim.fn.has "macunix" == 1 then
-      local handle = io.popen("im-select " .. M.defaultIME)
-      handle:close()
-   end
+  if vim.fn.has "macunix" == 1 then
+    local handle = io.popen("im-select " .. M.defaultIME)
+    handle:close()
+  end
 end
 
 M.leave = function()
-   if vim.fn.has "macunix" == 1 then
-      M.getCurrentIME()
-      M.setDefaultIME()
-   end
+  if vim.fn.has "macunix" == 1 then
+    M.getCurrentIME()
+    M.setDefaultIME()
+  end
 end
 
 M.setup = function()
-   vim.api.nvim_exec(
-      [[
+  vim.api.nvim_exec(
+    [[
     augroup chIME
     autocmd!
     autocmd InsertEnter * lua require("chIME").recoverIME()
@@ -42,7 +42,7 @@ M.setup = function()
     autocmd InsertLeave * lua require("chIME").leave()
     augroup end
         ]],
-      false
-   )
+    false
+  )
 end
 return M

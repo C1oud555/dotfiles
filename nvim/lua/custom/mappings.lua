@@ -10,6 +10,8 @@ M.general = {
     -- navigate within insert mode
     ["<C-b>"] = { "<Left>", "  move left" },
     ["<C-f>"] = { "<Right>", " move right" },
+    ["<C-n>"] = { "<Down>", "  move down" },
+    ["<C-p>"] = { "<Up>", "  move up" },
   },
 }
 
