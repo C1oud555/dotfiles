@@ -8,7 +8,8 @@ M.treesitter = {
     "scala",
     "comment",
     "c",
-    "cpp"
+    "cpp",
+    "python"
   }
 }
 
