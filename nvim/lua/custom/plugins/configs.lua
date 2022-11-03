@@ -32,9 +32,6 @@ M.nvchadui = {
   statusline = {
     separator_style = "round",
   },
-  tabufline = {
-    enabled = false,
-  }
 }
 
 return M
