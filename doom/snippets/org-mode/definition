@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: definition
-# key: defi
-# --
-#+begin_definition
-$0
-#+end_definition

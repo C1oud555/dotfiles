@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# name: org-mode img width
-# key: imgw
-# --
-#+attr_org: :width ${1:500pt}
-#+attr_latex: :width ${2:15cm}
-#+caption: $3
-$0

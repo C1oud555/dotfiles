@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: comment-box
+# key: box
+# --
+/*--------${1:$(make-string (string-width yas-text) ?-)}-------*
+ *---    ${1:value}     ---*
+ *--------${1:$(make-string (string-width yas-text) ?-)}-------*/
+$0

@@ -8,9 +8,11 @@
 
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:
 (package! rime)
-(package! vulpea)
-(package! cal-china-x)
+;; (package! vulpea)
+;; (package! cal-china-x)
 
+(package! verilog-mode)
+(package! valign)
 ;; To install a package directly from a remote git repo, you must specify a
 ;; `:recipe'. You'll find documentation on what `:recipe' accepts here:
 ;; https://github.com/raxod502/straight.el#the-recipe-format
@@ -26,22 +28,22 @@
 
 ;; If you'd like to disable a package included with Doom, you can do so here
 ;; with the `:disable' property:
-(package! pyim :disable t)
-(package! chinese-wbim :disable t)
-(package! fcitx :disable t)
 (package! ace-pinyin :disable t)
+(package! chinese-wbim :disable t)
+(package! pyim :disable t)
+(package! fcitx :disable t)
+
 (package! ivy-bibtex :disable t)
 (package! helm-bibtex :disable t)
-;; (package! pipenv :disable t)
 
-(package! valign)
 (package! pipenv :disable t)
 
-(package! org-roam-bibtex
-  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
-(unpin! org-roam)
-(package! org-roam-ui)
-(unpin! bibtex-completion helm-bibtex ivy-bibtex)
+;; (package! org-roam-bibtex
+;;   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
+;; (unpin! org-roam)
+;; (package! org-roam-ui)
+;; (unpin! bibtex-completion helm-bibtex ivy-bibtex)
+
 ;; You can override the recipe of a built in package without having to specify
 ;; all the properties for `:recipe'. These will inherit the rest of its recipe
 ;; from Doom or MELPA/ELPA/Emacsmirror:

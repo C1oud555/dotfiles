@@ -31,6 +31,11 @@ return {
       require("nvim-surround").setup {}
     end,
   },
+  ["ggandor/leap.nvim"] = {
+    config = function()
+      require"custom.plugins.confs.leap"
+    end,
+  }
 }
 
 

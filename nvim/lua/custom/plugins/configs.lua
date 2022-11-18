@@ -9,28 +9,31 @@ M.treesitter = {
     "comment",
     "c",
     "cpp",
-    "python"
-  }
+    "python",
+  },
 }
 
 M.nvimtree = {
-   git = {
-      enable = true,
-      ignore = true,
-      show_on_dirs = true,
-      timeout = 400,
-   },
-   renderer = {
-     icons = {
-       show = {
-         git = true,
-       }
-     }
-   }
+  git = {
+    enable = true,
+    ignore = true,
+    show_on_dirs = true,
+    timeout = 400,
+  },
+  renderer = {
+    icons = {
+      show = {
+        git = true,
+      },
+    },
+  },
 }
 M.nvchadui = {
   statusline = {
     separator_style = "round",
+  },
+  tabufline = {
+    enabled = false,
   },
 }
 
