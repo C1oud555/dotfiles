@@ -2,4 +2,4 @@
 # name: last_modified_time
 # key: lmt
 # --
-#+last_modified: [2022-11-17 Thu 10:25]
+#+last_modified: `(format-time-string "[%Y-%02m-%02d %3a %02H:%02M]")`$0

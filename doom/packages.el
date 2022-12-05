@@ -8,11 +8,16 @@
 
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:
 (package! rime)
-;; (package! vulpea)
-;; (package! cal-china-x)
-
 (package! verilog-mode)
 (package! valign)
+(package! pinyinlib)
+
+(unpin! org-roam)
+(package! org-roam-ui)
+;; (package! mac-pseudo-daemon)
+;; (package! vulpea)
+
+
 ;; To install a package directly from a remote git repo, you must specify a
 ;; `:recipe'. You'll find documentation on what `:recipe' accepts here:
 ;; https://github.com/raxod502/straight.el#the-recipe-format
@@ -28,6 +33,7 @@
 
 ;; If you'd like to disable a package included with Doom, you can do so here
 ;; with the `:disable' property:
+
 (package! ace-pinyin :disable t)
 (package! chinese-wbim :disable t)
 (package! pyim :disable t)
@@ -38,11 +44,6 @@
 
 (package! pipenv :disable t)
 
-;; (package! org-roam-bibtex
-;;   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
-;; (unpin! org-roam)
-;; (package! org-roam-ui)
-;; (unpin! bibtex-completion helm-bibtex ivy-bibtex)
 
 ;; You can override the recipe of a built in package without having to specify
 ;; all the properties for `:recipe'. These will inherit the rest of its recipe
@@ -59,7 +60,7 @@
 ;(package! builtin-package :pin "1a2b3c4d5e")
 
 
-;; Doom's packages are pinned to a specific commit and updated from release to
+
 ;; release. The `unpin!' macro allows you to unpin single packages...
 ;(unpin! pinned-package)
 ;; ...or multiple packages

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: time_stamps
+# key: cmt
+# --
+#+created: `(format-time-string "[%Y-%02m-%02d %3a %02H:%02M]")`$0
+#+last_modified: [2022-11-24 Thu 17:27]

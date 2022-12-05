@@ -13,13 +13,19 @@
        doom-variable-pitch-font (font-spec :family "Monaco" :size 14 :weight 'normal :width 'normal)
        doom-big-font (font-spec :family "Monaco" :szie 23))
 #+end_src
-
 ** Theme Sets
 #+begin_src emacs-lisp
 (setq! doom-theme 'doom-one)
 (defun set-blur-background ()
   (set-face-stipple 'default "alpha:70%"))
 (add-hook! '+doom-dashboard-mode-hook #'set-blur-background)
+#+end_src
+- window select ace
+#+begin_src emacs-lisp
+(custom-set-faces!
+  '(aw-leading-char-face
+    :foreground "white" :background "red"
+    :weight bold :height 2.5 :box (:line-width 10 :color "red")))
 #+end_src
 ** Keybindings
 #+begin_src emacs-lisp
@@ -52,12 +58,17 @@
           #'complete-path-at-point+
           'append)
 #+end_src
+*** Orderless + pinyin
+#+begin_src emacs-lisp
+(after! orderless
+  (require' pinyinlib)
+  (defun completion--regex-pinyin (str)
+    (orderless-regexp (pinyinlib-build-regexp-string str)))
+  (add-to-list 'orderless-matching-styles 'completion--regex-pinyin))
+#+end_src
 ** Org-Mode related Sets
 #+begin_src emacs-lisp
 (setq! org-directory "~/Documents/org"
-       org-preview-latex-default-process 'dvisvgm
-       ;; org-highlight-latex-and-related '(latex script entities)
-       org-latex-pdf-process '("latexmk -f -pdf -xelatex -interaction=nonstopmode -output-directory=%o %f")
        org-file-apps '((auto-mode . emacs)
                        (directory . emacs)
                        ("\\.mm\\'" . default)
@@ -68,20 +79,48 @@
                             ("_" underline)
                             ("=" org-verbatim verbatim)
                             ("~" org-code verbatim)
-                            ("+" (:strike-through t)))
-       org-format-latex-options '(:foreground default
-                                  :background default
-                                  :scale 2.0
-                                  :html-foreground "Black"
-                                  :html-background "Transparent"
-                                  :html-scale 1.0
-                                  :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
+                            ("+" (:strike-through t))))
 ;; For align chinese character
 (add-hook 'org-mode-hook #'valign-mode)
 ;; Evil math in latex math in org mode
 (evil-define-key '(visual operator) evil-org-mode-map
   "im" #'evil-tex-inner-math
   "am" #'evil-tex-a-math)
+#+end_src
+*** Org Latex
+#+begin_src emacs-lisp
+(after! ox-latex
+  (add-to-list 'org-latex-classes
+               '("ctexart" "\\documentclass[11pt]{ctexart}"
+                 ("\\section{%s}" . "\\section*{%s}")
+                 ("\\subsection{%s}" . "\\subsection*{%s}")
+                 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                 ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+  (setq! org-preview-latex-default-process 'dvisvgm
+         ;; org-highlight-latex-and-related '(latex script entities)
+         org-latex-default-class "ctexart"
+         org-latex-compiler "xelatex"
+         ;; org-latex-pdf-process '("latexmk -f -pdf -xelatex -interaction=nonstopmode -output-directory=%o %f")
+         org-format-latex-options '(:foreground default
+                                    :background default
+                                    :scale 2.0
+                                    :html-foreground "Black"
+                                    :html-background "Transparent"
+                                    :html-scale 1.0
+                                    :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
+  ;; (setq! org-latex-packages-alist '())
+  ;; (add-to-list 'org-latex-packages-alist '("" "xeCJK" t))
+  )
+#+end_src
+*** created/last_modified heading
+#+begin_src emacs-lisp
+(after! org
+  (setq time-stamp-active t
+        time-stamp-start "#\\+last_modified: [ \t]*"
+        time-stamp-end "$"
+        time-stamp-format "\[%Y-%02m-%02d %3a %02H:%02M\]")
+  (add-hook 'before-save-hook 'time-stamp))
 #+end_src
 *** Org-crypt
 #+begin_src emacs-lisp
@@ -92,29 +131,189 @@
 #+end_src
 *** Org-Capture sets
 #+begin_src emacs-lisp
-(setq! org-capture-templates '(("t" "Personal todo" entry
-                                (file+headline +org-capture-todo-file "Inbox")
-                                "* [ ] %?\n%i\n%a" :prepend t)
-                               ("n" "Personal notes" entry
-                                (file+headline +org-capture-notes-file "Inbox")
-                                "* %u %?\n%i\n%a" :prepend t)
-                               ("j" "Journal" entry
-                                (file+olp+datetree +org-capture-journal-file)
-                                "* %U %?\n%i\n%a" :prepend t)
-                               ("p" "Templates for projects")
-                               ("pt" "Project-local todo" entry
-                                (file+headline +org-capture-project-todo-file "Inbox")
-                                "* TODO %?\n%i\n%a" :prepend t)
-                               ("pn" "Project-local notes" entry
-                                (file+headline +org-capture-project-notes-file "Inbox")
-                                "* %U %?\n%i\n%a" :prepend t)
-                               ("pc" "Project-local changelog" entry
-                                (file+headline +org-capture-project-changelog-file "Unreleased")
-                                "* %U %?\n%i\n%a" :prepend t)
-                               ("o" "Centralized templates for projects")
-                               ("ot" "Project todo" entry #'+org-capture-central-project-todo-file "* TODO %?\n %i\n %a" :heading "Tasks" :prepend nil)
-                               ("on" "Project notes" entry #'+org-capture-central-project-notes-file "* %U %?\n %i\n %a" :heading "Notes" :prepend t)
-                               ("oc" "Project changelog" entry #'+org-capture-central-project-changelog-file "* %U %?\n %i\n %a" :heading "Changelog" :prepend t)))
+;; (setq! org-capture-templates '(("t" "Personal todo" entry
+;;                                 (file+headline +org-capture-todo-file "Inbox")
+;;                                 "* [ ] %?\n%i\n%a" :prepend t)
+;;                                ("n" "Personal notes" entry
+;;                                 (file+headline +org-capture-notes-file "Inbox")
+;;                                 "* %u %?\n%i\n%a" :prepend t)
+;;                                ("j" "Journal" entry
+;;                                 (file+olp+datetree +org-capture-journal-file)
+;;                                 "* %U %?\n%i\n%a" :prepend t)
+;;                                ("p" "Templates for projects")
+;;                                ("pt" "Project-local todo" entry
+;;                                 (file+headline +org-capture-project-todo-file "Inbox")
+;;                                 "* TODO %?\n%i\n%a" :prepend t)
+;;                                ("pn" "Project-local notes" entry
+;;                                 (file+headline +org-capture-project-notes-file "Inbox")
+;;                                 "* %U %?\n%i\n%a" :prepend t)
+;;                                ("pc" "Project-local changelog" entry
+;;                                 (file+headline +org-capture-project-changelog-file "Unreleased")
+;;                                 "* %U %?\n%i\n%a" :prepend t)
+;;                                ("o" "Centralized templates for projects")
+;;                                ("ot" "Project todo" entry #'+org-capture-central-project-todo-file "* TODO %?\n %i\n %a" :heading "Tasks" :prepend nil)
+;;                                ("on" "Project notes" entry #'+org-capture-central-project-notes-file "* %U %?\n %i\n %a" :heading "Notes" :prepend t)
+;;                                ("oc" "Project changelog" entry #'+org-capture-central-project-changelog-file "* %U %?\n %i\n %a" :heading "Changelog" :prepend t)))
+#+end_src
+*** Org-Roam2
+#+begin_src emacs-lisp
+(defun vulpea-project-p ()
+  "Return non-nil if current buffer has any todo entry.
+
+TODO entries marked as done are ignored, meaning the this
+function returns nil if current buffer contains only completed
+tasks."
+  (seq-find                                 ; (3)
+   (lambda (type)
+     (eq type 'todo))
+   (org-element-map                         ; (2)
+       (org-element-parse-buffer 'headline) ; (1)
+       'headline
+     (lambda (h)
+       (org-element-property :todo-type h)))))
+
+(defun vulpea-project-update-tag ()
+  "Update PROJECT tag in the current buffer."
+  (when (and (not (active-minibuffer-window))
+             (vulpea-buffer-p))
+    (save-excursion
+      (goto-char (point-min))
+      (let* ((tags (vulpea-buffer-tags-get))
+             (original-tags tags))
+        (if (vulpea-project-p)
+            (setq tags (cons "project" tags))
+          (setq tags (remove "project" tags)))
+
+        ;; cleanup duplicates
+        (setq tags (seq-uniq tags))
+
+        ;; update tags if changed
+        (when (or (seq-difference tags original-tags)
+                  (seq-difference original-tags tags))
+          (apply #'vulpea-buffer-tags-set tags))))))
+
+(defun vulpea-buffer-p ()
+  "Return non-nil if the currently visited buffer is a note."
+  (and buffer-file-name
+       (string-prefix-p
+        (expand-file-name (file-name-as-directory org-roam-directory))
+        (file-name-directory buffer-file-name))))
+
+(defun vulpea-project-files ()
+  "Return a list of note files containing 'project' tag." ;
+  (seq-uniq
+   (seq-map
+    #'car
+    (org-roam-db-query
+     [:select [nodes:file]
+      :from tags
+      :left-join nodes
+      :on (= tags:node-id nodes:id)
+      :where (like tag (quote "%\"project\"%"))]))))
+
+(defun vulpea-agenda-files-update (&rest _)
+  "Update the value of `org-agenda-files'."
+  (setq org-agenda-files (seq-uniq
+                          (append (vulpea-project-files)
+                                  `(,org-directory)))))
+
+
+(defun vulpea-buffer-tags-get ()
+  "Return filetags value in current buffer."
+  (vulpea-buffer-prop-get-list "filetags" "[ :]"))
+
+(defun vulpea-buffer-prop-get-list (name &optional separators)
+  "Get a buffer property NAME as a list using SEPARATORS.
+
+If SEPARATORS is non-nil, it should be a regular expression
+matching text that separates, but is not part of, the substrings.
+If nil it defaults to `split-string-default-separators', normally
+\"[ \f\t\n\r\v]+\", and OMIT-NULLS is forced to t."
+  (let ((value (vulpea-buffer-prop-get name)))
+    (when value
+      (split-string-and-unquote value separators))))
+
+(defun vulpea-buffer-prop-get (name)
+  "Get a buffer property called NAME as a string."
+  (org-with-point-at 1
+    (when (re-search-forward (concat "^#\\+" name ": \\(.*\\)")
+                             (point-max) t)
+      (let ((value (string-trim
+                    (buffer-substring-no-properties
+                     (match-beginning 1)
+                     (match-end 1)))))
+        (unless (string-empty-p value)
+          value)))))
+
+(defun vulpea-buffer-tags-add (tag)
+  "Add a TAG to filetags in current buffer."
+  (let* ((tags (vulpea-buffer-tags-get))
+         (tags (append tags (list tag))))
+    (apply #'vulpea-buffer-tags-set tags)))
+
+(defun vulpea-buffer-tags-set (&rest tags)
+  "Set TAGS in current buffer.
+
+If filetags value is already set, replace it."
+  (if tags
+      (vulpea-buffer-prop-set
+       "filetags" (concat ":" (string-join tags ":") ":"))
+    (vulpea-buffer-prop-remove "filetags")))
+
+(defun vulpea-buffer-prop-set (name value)
+  "Set a file property called NAME to VALUE in buffer file.
+
+If the property is already set, replace its value."
+  (setq name (downcase name))
+  (org-with-point-at 1
+    (let ((case-fold-search t))
+      (if (re-search-forward (concat "^#\\+" name ":\\(.*\\)")
+                             (point-max) t)
+          (replace-match (concat "#+" name ": " value) 'fixedcase)
+        (while (and (not (eobp))
+                    (looking-at "^[#:]"))
+          (if (save-excursion (end-of-line) (eobp))
+              (progn
+                (end-of-line)
+                (insert "\n"))
+            (forward-line)
+            (beginning-of-line)))
+        (insert "#+" name ": " value "\n")))))
+
+(defun vulpea-buffer-prop-remove (name)
+  "Remove a buffer property called NAME."
+  (org-with-point-at 1
+    (when (re-search-forward (concat "\\(^#\\+" name ":.*\n?\\)")
+                             (point-max) t)
+      (replace-match ""))))
+
+(add-hook 'find-file-hook #'vulpea-project-update-tag)
+(add-hook 'before-save-hook #'vulpea-project-update-tag)
+
+(advice-add 'org-agenda :before #'vulpea-agenda-files-update)
+(advice-add 'org-todo-list :before #'vulpea-agenda-files-update)
+#+end_src
+**** Org-roam2 UI
+#+begin_src emacs-lisp
+(use-package! websocket
+  :after org-roam)
+(use-package! org-roam-ui
+  :after org-roam
+  ;; :hook (after-init . org-roam-ui-mode)
+  :config
+  (setq org-roam-ui-sync-theme t
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t
+        org-roam-ui-open-on-start t))
+#+end_src
+*** Org-Download
+#+begin_src emacs-lisp
+(after! org-download
+  (setq! org-download-method 'directory))
+         ;; org-download-heading-lvl 1))
+(after! org
+  (setq! org-download-image-dir "images"
+         org-download-image-org-width 300))
 #+end_src
 ** Chinese IME -- RIME Set
 主要是 rime 在 emacs 里面可以根据前后情况来自动切换中英文真的太爽了。
@@ -174,8 +373,13 @@
 ** Mac's key Sets
 主要还是为了贴合 linux 的操作习惯吧，按上去 Alt 作为 meta 在一些场景下也更舒服
 #+begin_src emacs-lisp
-(setq! mac-command-modifier     'super
-       mac-option-modifier      'meta)
+(setq! mac-command-modifier     'meta
+       mac-option-modifier      'super
+       mac-right-option-modifier 'left)
+#+end_src
+** Biblio
+#+begin_src emacs-lisp
+(setq! citar-bibliography '("~/Documents/org/biblio.bib"))
 #+end_src
 ** Latex Sets
 #+begin_src emacs-lisp
@@ -211,65 +415,55 @@
           (:map lsp-command-map
                 "l" #'lsp-avy-lens)))
 #+end_src
-*** verilog
-#+begin_src emacs-lisp
-(require 'lsp-verilog)
-(custom-set-variables
-  '(lsp-clients-svlangserver-launchConfiguration "verilator -sv --timing --lint-only -Wall")
-  '(lsp-clients-svlangserver-formatCommand "verible-verilog-format")
-  '(verilog-indent-level 2)
-  '(verilog-indent-level-module 2)
-  '(verilog-indent-level-behavioral 2)
-  '(verilog-indent-level-declaration 2)
-  '(verilog-case-indent 2)
-  '(verilog-cexp-indent 2))
-(add-hook 'verilog-mode-hook #'lsp-deferred)
-#+end_src
+
 *** rust
 #+begin_src emacs-lisp
-(setq! lsp-rust-analyzer-server-display-inlay-hints t
-       lsp-rust-clippy-preference "on"
-       lsp-rust-analyzer-cargo-watch-command "clippy")
+(after! rustic
+       (setq! lsp-rust-analyzer-server-display-inlay-hints t
+              lsp-rust-clippy-preference "on"
+              lsp-rust-analyzer-cargo-watch-command "clippy"))
 #+end_src
 
 *** scala
 #+begin_src emacs-lisp
-;; (setq! lsp-metals-show-inferred-type t
-;;        lsp-metals-show-implicit-arguments t
-;;        lsp-metals-show-implicit-conversions-and-classes t)
+(setq! lsp-metals-show-inferred-type t
+       lsp-metals-show-implicit-arguments t
+       lsp-metals-super-method-lenses-enabled t
+       lsp-metals-show-implicit-conversions-and-classes t)
 #+end_src
 *** python
 #+begin_src emacs-lisp
 ;; for remote pyright
-(setq lsp-log-io t)
-(setq lsp-pyright-use-library-code-for-types t)
-(setq lsp-pyright-diagnostic-mode "workspace")
-(lsp-register-client
- (make-lsp-client
-  :new-connection (lsp-tramp-connection (lambda ()
-                                          (cons "pyright-langserver"
-                                                lsp-pyright-langserver-command-args)))
-  :major-modes '(python-mode)
-  :remote? t
-  :server-id 'pyright-remote
-  :multi-root t
-  :priority 3
-  :initialization-options (lambda () (ht-merge (lsp-configuration-section "pyright")
-                                               (lsp-configuration-section "python")))
-  :initialized-fn (lambda (workspace)
-                    (with-lsp-workspace workspace
-                      (lsp--set-configuration
-                       (ht-merge (lsp-configuration-section "pyright")
-                                 (lsp-configuration-section "python")))))
-  :download-server-fn (lambda (_client callback error-callback _update?)
-                        (lsp-package-ensure 'pyright callback error-callback))
-  :notification-handlers (lsp-ht ("pyright/beginProgress" 'lsp-pyright--begin-progress-callback)
-                                 ("pyright/reportProgress" 'lsp-pyright--report-progress-callback)
-                                 ("pyright/endProgress" 'lsp-pyright--end-progress-callback))))
+;; (setq lsp-log-io t)
+;; (setq lsp-pyright-use-library-code-for-types t)
+;; (setq lsp-pyright-diagnostic-mode "workspace")
+;; (lsp-register-client
+;;  (make-lsp-client
+;;   :new-connection (lsp-tramp-connection (lambda ()
+;;                                           (cons "pyright-langserver"
+;;                                                 lsp-pyright-langserver-command-args)))
+;;   :major-modes '(python-mode)
+;;   :remote? t
+;;   :server-id 'pyright-remote
+;;   :multi-root t
+;;   :priority 3
+;;   :initialization-options (lambda () (ht-merge (lsp-configuration-section "pyright")
+;;                                                (lsp-configuration-section "python")))
+;;   :initialized-fn (lambda (workspace)
+;;                     (with-lsp-workspace workspace
+;;                       (lsp--set-configuration
+;;                        (ht-merge (lsp-configuration-section "pyright")
+;;                                  (lsp-configuration-section "python")))))
+;;   :download-server-fn (lambda (_client callback error-callback _update?)
+;;                         (lsp-package-ensure 'pyright callback error-callback))
+;;   :notification-handlers (lsp-ht ("pyright/beginProgress" 'lsp-pyright--begin-progress-callback)
+;;                                  ("pyright/reportProgress" 'lsp-pyright--report-progress-callback)
+;;                                  ("pyright/endProgress" 'lsp-pyright--end-progress-callback))))
 #+end_src
 ** Treemacs
 #+begin_src emacs-lisp
-(setq! +treemacs-git-mode 'deferred)
+(after! treemacs
+  (setq! +treemacs-git-mode 'deferred))
 #+end_src
 ** Vertico
 #+begin_src emacs-lisp
