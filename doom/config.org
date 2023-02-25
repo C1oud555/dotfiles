@@ -11,14 +11,11 @@
 #+begin_src emacs-lisp
 (setq! doom-font (font-spec :family "Monaco" :size 14 :weight 'normal :width 'normal)
        doom-variable-pitch-font (font-spec :family "Monaco" :size 14 :weight 'normal :width 'normal)
-       doom-big-font (font-spec :family "Monaco" :szie 23))
+       doom-big-font (font-spec :family "Monaco" :size 23))
 #+end_src
 ** Theme Sets
 #+begin_src emacs-lisp
 (setq! doom-theme 'doom-one)
-(defun set-blur-background ()
-  (set-face-stipple 'default "alpha:70%"))
-(add-hook! '+doom-dashboard-mode-hook #'set-blur-background)
 #+end_src
 - window select ace
 #+begin_src emacs-lisp
@@ -315,6 +312,11 @@ If the property is already set, replace its value."
   (setq! org-download-image-dir "images"
          org-download-image-org-width 300))
 #+end_src
+*** olivetti
+#+begin_src emacs-lisp
+(use-package! olivetti)
+  ;; :hook (org-mode . olivetti-mode))
+#+end_src
 ** Chinese IME -- RIME Set
 主要是 rime 在 emacs 里面可以根据前后情况来自动切换中英文真的太爽了。
 #+begin_src emacs-lisp
@@ -347,7 +349,7 @@ If the property is already set, replace its value."
                     (or (string-match-p "[\x5c][\x21-\x24\x26-\x7e]*$" string)
                         (string-match-p "[\x5c][a-zA-Z\x23\x40]+[\x7b][^\x7d\x25]*$" string)))))))
   (setq! rime-show-candidate 'posframe
-         rime-emacs-module-header-root "/opt/homebrew/opt/emacs-mac/include"
+         rime-emacs-module-header-root "/opt/homebrew/opt/emacs-plus/include"
          rime-show-preedit 'inline
          default-input-method "rime"
          rime-librime-root (expand-file-name "librime/dist" user-emacs-directory)
@@ -367,8 +369,19 @@ If the property is already set, replace its value."
                                    rime-predicate-current-uppercase-letter-p     ;;将要输入的为大写字母时
                                         ;rime-predicate-org-in-src-block-p             ;;在`org-src-block'中时
                                    rime-predicate-tex-math-or-command-p)         ;;在 (La)TeX 数学环境中或者输入 (La)TeX 命令时
-         rime-posframe-properties (list :font (font-spec :family "Hiragino Sans GB" :size 18)
+         rime-posframe-properties (list :font "Hiragino Sans GB-18"
                                         :internal-border-width 3)))
+#+end_src
+*** 中文分词
+#+begin_src emacs-lisp
+(use-package! cns
+  :init
+  (setq cns-process-shell-command "/Users/hyluo/tmp/jieba-rs-wrapper/target/debug/jieba-rs-wrapper")
+  :config
+  (setq cns-prog "/Users/hyluo/.emacs.d/.local/straight/repos/emacs-chinese-word-segmentation/cnws"
+        cns-dict-directory "/Users/hyluo/.emacs.d/.local/straight/repos/emacs-chinese-word-segmentation/cppjieba/dict"
+        cns-recent-segmentation-limit 20
+        cns-debug nil))
 #+end_src
 ** Mac's key Sets
 主要还是为了贴合 linux 的操作习惯吧，按上去 Alt 作为 meta 在一些场景下也更舒服
@@ -426,10 +439,11 @@ If the property is already set, replace its value."
 
 *** scala
 #+begin_src emacs-lisp
-(setq! lsp-metals-show-inferred-type t
-       lsp-metals-show-implicit-arguments t
-       lsp-metals-super-method-lenses-enabled t
-       lsp-metals-show-implicit-conversions-and-classes t)
+(after! scala
+  (setq! ;; lsp-metals-show-inferred-type t
+   lsp-metals-show-implicit-arguments t
+   lsp-metals-super-method-lenses-enabled t
+   lsp-metals-show-implicit-conversions-and-classes t))
 #+end_src
 *** python
 #+begin_src emacs-lisp
@@ -459,6 +473,16 @@ If the property is already set, replace its value."
 ;;   :notification-handlers (lsp-ht ("pyright/beginProgress" 'lsp-pyright--begin-progress-callback)
 ;;                                  ("pyright/reportProgress" 'lsp-pyright--report-progress-callback)
 ;;                                  ("pyright/endProgress" 'lsp-pyright--end-progress-callback))))
+#+end_src
+*** verilog
+#+begin_src emacs-lisp
+(require 'lsp-verilog)
+
+(custom-set-variables
+  '(lsp-clients-svlangserver-launchConfiguration "verilator -timing -sv --lint-only -Wall")
+  '(lsp-clients-svlangserver-formatCommand "verible-verilog-format"))
+
+(add-hook 'verilog-mode-hook #'lsp-deferred)
 #+end_src
 ** Treemacs
 #+begin_src emacs-lisp

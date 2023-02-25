@@ -5,12 +5,19 @@
 ;; on the command line, then restart Emacs for the changes to take effect -- or
 ;; use 'M-x doom/reload'.
 
+;;;;;;;;; temp work around
+;;(package! transient :pin "c2bdf7e12c530eb85476d3aef317eb2941ab9440")
+;;(package! with-editor :pin "bbc60f68ac190f02da8a100b6fb67cf1c27c53ab")
+;;;;;;;;;
 
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:
 (package! rime)
 (package! verilog-mode)
 (package! valign)
 (package! pinyinlib)
+(package! olivetti)
+(package! cns
+  :recipe (:host github :repo "kanglmf/emacs-chinese-word-segmentation"))
 
 (unpin! org-roam)
 (package! org-roam-ui)
