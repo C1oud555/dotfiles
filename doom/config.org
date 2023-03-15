@@ -476,13 +476,33 @@ If the property is already set, replace its value."
 #+end_src
 *** verilog
 #+begin_src emacs-lisp
-(require 'lsp-verilog)
+;; (require 'lsp-verilog)
 
-(custom-set-variables
-  '(lsp-clients-svlangserver-launchConfiguration "verilator -timing -sv --lint-only -Wall")
-  '(lsp-clients-svlangserver-formatCommand "verible-verilog-format"))
+;; (custom-set-variables
+;;   '(lsp-clients-svlangserver-launchConfiguration "verilator -timing -sv --lint-only -Wall")
+;;   '(lsp-clients-svlangserver-formatCommand "verible-verilog-format"))
+(after! lsp
+(add-to-list 'lsp-language-id-configuration
+             '(verilog-mode . "verilog"))
+(lsp-register-client
+ (make-lsp--client :new-connection (lsp-stdio-connection '("poetry" "run" "python" "src/main.py"))
+                   :activation-fn (lsp-activate-on "verilog")
+                   :priority -1
+                   :server-id 'slangserver)))
 
-(add-hook 'verilog-mode-hook #'lsp-deferred)
+;; (add-hook 'verilog-mode-hook #'lsp-deferred)
+#+end_src
+*** cpp
+#+begin_src emacs-lisp
+(after! lsp-clangd
+  (setq lsp-clients-clangd-args
+        '("-j=3"
+          "--background-index"
+          "--clang-tidy"
+          "--completion-style=detailed"
+          "--header-insertion=never"
+          "--header-insertion-decorators=0"))
+  (set-lsp-priority! 'clangd 2))
 #+end_src
 ** Treemacs
 #+begin_src emacs-lisp
