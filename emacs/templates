@@ -1,0 +1,19 @@
+;; ~/.config/emacs/templates
+
+;; ~/.config/emacs/templates
+
+;; fundamental-mode ;; Available everywhere
+
+scala-mode
+(object "object " p " {" n> p n> "}")
+
+verilog-mode
+(module "module " p ";" n> n "endmodule")
+(always_comb "always_comb begin" n> n> "end")
+(begin_end "begin" n> r> n> "end")
+
+
+;; Local Variables:
+;; mode: lisp-data
+;; outline-regexp: "[a-z]"
+;; End:
