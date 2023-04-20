@@ -1,69 +1,54 @@
 #+TITLE: Org-Mode Literate Config
 
-* Hyluo's Emacs Config.org based on Doom Emacs
-** Self-Introduction
+*Hyluo's Emacs Config.org based on Doom Emacs*
+* Self-Info
 #+begin_src emacs-lisp
 ;;; ~/.config/doom/config.el -*- lexical-binding: t; -*-
-(setq! user-full-name "hyluo"
-       user-mail-address "hyluo.1999@qq.com")
+(setq!
+ user-full-name "hyluo"
+ user-mail-address "hyluo.1999@qq.com")
 #+end_src
-** Font Sets
+* UI
+** Font
 #+begin_src emacs-lisp
-(setq! doom-font (font-spec :family "Monaco" :size 14 :weight 'normal :width 'normal)
-       doom-variable-pitch-font (font-spec :family "Monaco" :size 14 :weight 'normal :width 'normal)
-       doom-big-font (font-spec :family "Monaco" :size 23))
+(setq!
+ doom-font (font-spec :family "Monaco" :size 15 :weight 'normal :width 'normal)
+ doom-variable-pitch-font (font-spec :family "Monaco" :size 17 :weight 'normal :width 'normal)
+ doom-big-font (font-spec :family "Monaco" :size 23))
+
+(defun init-cjk-fonts()
+  (dolist (charset '(kana han cjk-misc bopomofo))
+    (set-fontset-font (frame-parameter nil 'font)
+      charset (font-spec :family "HiraginoSansGB-W3" :size 15))))
+(add-hook 'doom-init-ui-hook 'init-cjk-fonts)
 #+end_src
-** Theme Sets
+** Theme
 #+begin_src emacs-lisp
 (setq! doom-theme 'doom-one)
 #+end_src
 - window select ace
 #+begin_src emacs-lisp
-(custom-set-faces!
-  '(aw-leading-char-face
-    :foreground "white" :background "red"
-    :weight bold :height 2.5 :box (:line-width 10 :color "red")))
+(after! ace-window
+  (custom-set-faces!
+    '(aw-leading-char-face
+      :foreground "white" :background "red"
+      :weight bold :height 2.5 :box (:line-width 10 :color "red"))))
 #+end_src
-** Keybindings
+* Keybindings
 #+begin_src emacs-lisp
 ;; (map! :leader :desc "Find file split" :n ">" #'find-file-other-window) // which is replace by embark C-; o
 #+end_src
-** Misc Sets
+* Basics
 #+begin_src emacs-lisp
-(setq! display-line-numbers-type t
-       ;; split-height-threshold nil
-       ;; split-width-threshold 10
-       mouse-autoselect-window t
-       mac-pass-command-to-system nil)
+(setq!
+ display-line-numbers-type t
+ ;; split-height-threshold nil
+ ;; split-width-threshold 10
+ ;; mouse-autoselect-window t
+ mac-pass-command-to-system nil)
 ;; (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 #+end_src
-*** CAPF file path
-#+begin_src emacs-lisp
-(autoload 'ffap-file-at-point "ffap")
-(defun complete-path-at-point+ ()
-  "Return completion data for UNIX path at point."
-  (let ((fn (ffap-file-at-point))
-        (fap (thing-at-point 'filename)))
-    (when (and (or fn (equal "/" fap))
-               (save-excursion
-                 (search-backward fap (line-beginning-position) t)))
-      (list (match-beginning 0)
-            (match-end 0)
-            #'completion-file-name-table :exclusive 'no))))
-
-(add-hook 'completion-at-point-functions
-          #'complete-path-at-point+
-          'append)
-#+end_src
-*** Orderless + pinyin
-#+begin_src emacs-lisp
-(after! orderless
-  (require' pinyinlib)
-  (defun completion--regex-pinyin (str)
-    (orderless-regexp (pinyinlib-build-regexp-string str)))
-  (add-to-list 'orderless-matching-styles 'completion--regex-pinyin))
-#+end_src
-** Org-Mode related Sets
+* Org-Mode
 #+begin_src emacs-lisp
 (setq! org-directory "~/Documents/org"
        org-file-apps '((auto-mode . emacs)
@@ -78,13 +63,20 @@
                             ("~" org-code verbatim)
                             ("+" (:strike-through t))))
 ;; For align chinese character
-(add-hook 'org-mode-hook #'valign-mode)
+(add-hook! org-mode
+  (valign-mode))
 ;; Evil math in latex math in org mode
-(evil-define-key '(visual operator) evil-org-mode-map
-  "im" #'evil-tex-inner-math
-  "am" #'evil-tex-a-math)
+(after! evil-org
+  (evil-define-key '(visual operator) evil-org-mode-map
+    "im" #'evil-tex-inner-math
+    "am" #'evil-tex-a-math))
 #+end_src
-*** Org Latex
+** superstar
+#+begin_src emacs-lisp
+(after! org-superstar
+  (setq! org-superstar-headline-bullets-list '("⁖" "◉" "○" "✸" "✿")))
+#+end_src
+** Org Latex
 #+begin_src emacs-lisp
 (after! ox-latex
   (add-to-list 'org-latex-classes
@@ -94,39 +86,41 @@
                  ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                  ("\\paragraph{%s}" . "\\paragraph*{%s}")
                  ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-  (setq! org-preview-latex-default-process 'dvisvgm
-         ;; org-highlight-latex-and-related '(latex script entities)
-         org-latex-default-class "ctexart"
-         org-latex-compiler "xelatex"
-         ;; org-latex-pdf-process '("latexmk -f -pdf -xelatex -interaction=nonstopmode -output-directory=%o %f")
-         org-format-latex-options '(:foreground default
-                                    :background default
-                                    :scale 2.0
-                                    :html-foreground "Black"
-                                    :html-background "Transparent"
-                                    :html-scale 1.0
-                                    :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
+  (setq!
+   org-preview-latex-default-process 'dvisvgm
+   ;; org-highlight-latex-and-related '(latex script entities)
+   org-latex-default-class "ctexart"
+   org-latex-compiler "xelatex"
+   ;; org-latex-pdf-process '("latexmk -f -pdf -xelatex -interaction=nonstopmode -output-directory=%o %f")
+   org-format-latex-options '(:foreground default
+                              :background default
+                              :scale 2.0
+                              :html-foreground "Black"
+                              :html-background "Transparent"
+                              :html-scale 1.0
+                              :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
   ;; (setq! org-latex-packages-alist '())
   ;; (add-to-list 'org-latex-packages-alist '("" "xeCJK" t))
   )
 #+end_src
-*** created/last_modified heading
+** created/last_modified heading
 #+begin_src emacs-lisp
 (after! org
-  (setq time-stamp-active t
-        time-stamp-start "#\\+last_modified: [ \t]*"
-        time-stamp-end "$"
-        time-stamp-format "\[%Y-%02m-%02d %3a %02H:%02M\]")
+  (setq
+   time-stamp-active t
+   time-stamp-start "#\\+last_modified: [ \t]*"
+   time-stamp-end "$"
+   time-stamp-format "\[%Y-%02m-%02d %3a %02H:%02M\]")
   (add-hook 'before-save-hook 'time-stamp))
 #+end_src
-*** Org-crypt
+** Org-crypt
 #+begin_src emacs-lisp
 ;; (require 'org-crypt)
 ;; (org-crypt-use-before-save-magic)
 ;; (setq! org-tags-exclude-from-inheritance (quote("crypt"))
 ;;       org-crypt-key nil)
 #+end_src
-*** Org-Capture sets
+** Org-Capture sets
 #+begin_src emacs-lisp
 ;; (setq! org-capture-templates '(("t" "Personal todo" entry
 ;;                                 (file+headline +org-capture-todo-file "Inbox")
@@ -152,145 +146,146 @@
 ;;                                ("on" "Project notes" entry #'+org-capture-central-project-notes-file "* %U %?\n %i\n %a" :heading "Notes" :prepend t)
 ;;                                ("oc" "Project changelog" entry #'+org-capture-central-project-changelog-file "* %U %?\n %i\n %a" :heading "Changelog" :prepend t)))
 #+end_src
-*** Org-Roam2
+** Org-Roam2
 #+begin_src emacs-lisp
-(defun vulpea-project-p ()
-  "Return non-nil if current buffer has any todo entry.
+(after! (org-agenda org-roam)
+  (defun vulpea-project-p ()
+    "Return non-nil if current buffer has any todo entry.
 
 TODO entries marked as done are ignored, meaning the this
 function returns nil if current buffer contains only completed
 tasks."
-  (seq-find                                 ; (3)
-   (lambda (type)
-     (eq type 'todo))
-   (org-element-map                         ; (2)
-       (org-element-parse-buffer 'headline) ; (1)
-       'headline
-     (lambda (h)
-       (org-element-property :todo-type h)))))
+    (seq-find                                 ; (3)
+     (lambda (type)
+       (eq type 'todo))
+     (org-element-map                         ; (2)
+         (org-element-parse-buffer 'headline) ; (1)
+         'headline
+       (lambda (h)
+         (org-element-property :todo-type h)))))
 
-(defun vulpea-project-update-tag ()
-  "Update PROJECT tag in the current buffer."
-  (when (and (not (active-minibuffer-window))
-             (vulpea-buffer-p))
-    (save-excursion
-      (goto-char (point-min))
-      (let* ((tags (vulpea-buffer-tags-get))
-             (original-tags tags))
-        (if (vulpea-project-p)
-            (setq tags (cons "project" tags))
-          (setq tags (remove "project" tags)))
+  (defun vulpea-project-update-tag ()
+    "Update PROJECT tag in the current buffer."
+    (when (and (not (active-minibuffer-window))
+               (vulpea-buffer-p))
+      (save-excursion
+        (goto-char (point-min))
+        (let* ((tags (vulpea-buffer-tags-get))
+               (original-tags tags))
+          (if (vulpea-project-p)
+              (setq tags (cons "project" tags))
+            (setq tags (remove "project" tags)))
 
-        ;; cleanup duplicates
-        (setq tags (seq-uniq tags))
+          ;; cleanup duplicates
+          (setq tags (seq-uniq tags))
 
-        ;; update tags if changed
-        (when (or (seq-difference tags original-tags)
-                  (seq-difference original-tags tags))
-          (apply #'vulpea-buffer-tags-set tags))))))
+          ;; update tags if changed
+          (when (or (seq-difference tags original-tags)
+                    (seq-difference original-tags tags))
+            (apply #'vulpea-buffer-tags-set tags))))))
 
-(defun vulpea-buffer-p ()
-  "Return non-nil if the currently visited buffer is a note."
-  (and buffer-file-name
-       (string-prefix-p
-        (expand-file-name (file-name-as-directory org-roam-directory))
-        (file-name-directory buffer-file-name))))
+  (defun vulpea-buffer-p ()
+    "Return non-nil if the currently visited buffer is a note."
+    (and buffer-file-name
+         (string-prefix-p
+          (expand-file-name (file-name-as-directory org-roam-directory))
+          (file-name-directory buffer-file-name))))
 
-(defun vulpea-project-files ()
-  "Return a list of note files containing 'project' tag." ;
-  (seq-uniq
-   (seq-map
-    #'car
-    (org-roam-db-query
-     [:select [nodes:file]
-      :from tags
-      :left-join nodes
-      :on (= tags:node-id nodes:id)
-      :where (like tag (quote "%\"project\"%"))]))))
+  (defun vulpea-project-files ()
+    "Return a list of note files containing 'project' tag." ;
+    (seq-uniq
+     (seq-map
+      #'car
+      (org-roam-db-query
+       [:select [nodes:file]
+        :from tags
+        :left-join nodes
+        :on (= tags:node-id nodes:id)
+        :where (like tag (quote "%\"project\"%"))]))))
 
-(defun vulpea-agenda-files-update (&rest _)
-  "Update the value of `org-agenda-files'."
-  (setq org-agenda-files (seq-uniq
-                          (append (vulpea-project-files)
-                                  `(,org-directory)))))
+  (defun vulpea-agenda-files-update (&rest _)
+    "Update the value of `org-agenda-files'."
+    (setq org-agenda-files (seq-uniq
+                            (append (vulpea-project-files)
+                                    `(,org-directory)))))
 
 
-(defun vulpea-buffer-tags-get ()
-  "Return filetags value in current buffer."
-  (vulpea-buffer-prop-get-list "filetags" "[ :]"))
+  (defun vulpea-buffer-tags-get ()
+    "Return filetags value in current buffer."
+    (vulpea-buffer-prop-get-list "filetags" "[ :]"))
 
-(defun vulpea-buffer-prop-get-list (name &optional separators)
-  "Get a buffer property NAME as a list using SEPARATORS.
+  (defun vulpea-buffer-prop-get-list (name &optional separators)
+    "Get a buffer property NAME as a list using SEPARATORS.
 
 If SEPARATORS is non-nil, it should be a regular expression
 matching text that separates, but is not part of, the substrings.
 If nil it defaults to `split-string-default-separators', normally
 \"[ \f\t\n\r\v]+\", and OMIT-NULLS is forced to t."
-  (let ((value (vulpea-buffer-prop-get name)))
-    (when value
-      (split-string-and-unquote value separators))))
+    (let ((value (vulpea-buffer-prop-get name)))
+      (when value
+        (split-string-and-unquote value separators))))
 
-(defun vulpea-buffer-prop-get (name)
-  "Get a buffer property called NAME as a string."
-  (org-with-point-at 1
-    (when (re-search-forward (concat "^#\\+" name ": \\(.*\\)")
-                             (point-max) t)
-      (let ((value (string-trim
-                    (buffer-substring-no-properties
-                     (match-beginning 1)
-                     (match-end 1)))))
-        (unless (string-empty-p value)
-          value)))))
+  (defun vulpea-buffer-prop-get (name)
+    "Get a buffer property called NAME as a string."
+    (org-with-point-at 1
+      (when (re-search-forward (concat "^#\\+" name ": \\(.*\\)")
+                               (point-max) t)
+        (let ((value (string-trim
+                      (buffer-substring-no-properties
+                       (match-beginning 1)
+                       (match-end 1)))))
+          (unless (string-empty-p value)
+            value)))))
 
-(defun vulpea-buffer-tags-add (tag)
-  "Add a TAG to filetags in current buffer."
-  (let* ((tags (vulpea-buffer-tags-get))
-         (tags (append tags (list tag))))
-    (apply #'vulpea-buffer-tags-set tags)))
+  (defun vulpea-buffer-tags-add (tag)
+    "Add a TAG to filetags in current buffer."
+    (let* ((tags (vulpea-buffer-tags-get))
+           (tags (append tags (list tag))))
+      (apply #'vulpea-buffer-tags-set tags)))
 
-(defun vulpea-buffer-tags-set (&rest tags)
-  "Set TAGS in current buffer.
+  (defun vulpea-buffer-tags-set (&rest tags)
+    "Set TAGS in current buffer.
 
 If filetags value is already set, replace it."
-  (if tags
-      (vulpea-buffer-prop-set
-       "filetags" (concat ":" (string-join tags ":") ":"))
-    (vulpea-buffer-prop-remove "filetags")))
+    (if tags
+        (vulpea-buffer-prop-set
+         "filetags" (concat ":" (string-join tags ":") ":"))
+      (vulpea-buffer-prop-remove "filetags")))
 
-(defun vulpea-buffer-prop-set (name value)
-  "Set a file property called NAME to VALUE in buffer file.
+  (defun vulpea-buffer-prop-set (name value)
+    "Set a file property called NAME to VALUE in buffer file.
 
 If the property is already set, replace its value."
-  (setq name (downcase name))
-  (org-with-point-at 1
-    (let ((case-fold-search t))
-      (if (re-search-forward (concat "^#\\+" name ":\\(.*\\)")
-                             (point-max) t)
-          (replace-match (concat "#+" name ": " value) 'fixedcase)
-        (while (and (not (eobp))
-                    (looking-at "^[#:]"))
-          (if (save-excursion (end-of-line) (eobp))
-              (progn
-                (end-of-line)
-                (insert "\n"))
-            (forward-line)
-            (beginning-of-line)))
-        (insert "#+" name ": " value "\n")))))
+    (setq name (downcase name))
+    (org-with-point-at 1
+      (let ((case-fold-search t))
+        (if (re-search-forward (concat "^#\\+" name ":\\(.*\\)")
+                               (point-max) t)
+            (replace-match (concat "#+" name ": " value) 'fixedcase)
+          (while (and (not (eobp))
+                      (looking-at "^[#:]"))
+            (if (save-excursion (end-of-line) (eobp))
+                (progn
+                  (end-of-line)
+                  (insert "\n"))
+              (forward-line)
+              (beginning-of-line)))
+          (insert "#+" name ": " value "\n")))))
 
-(defun vulpea-buffer-prop-remove (name)
-  "Remove a buffer property called NAME."
-  (org-with-point-at 1
-    (when (re-search-forward (concat "\\(^#\\+" name ":.*\n?\\)")
-                             (point-max) t)
-      (replace-match ""))))
+  (defun vulpea-buffer-prop-remove (name)
+    "Remove a buffer property called NAME."
+    (org-with-point-at 1
+      (when (re-search-forward (concat "\\(^#\\+" name ":.*\n?\\)")
+                               (point-max) t)
+        (replace-match ""))))
 
-(add-hook 'find-file-hook #'vulpea-project-update-tag)
-(add-hook 'before-save-hook #'vulpea-project-update-tag)
+  (add-hook 'find-file-hook #'vulpea-project-update-tag)
+  (add-hook 'before-save-hook #'vulpea-project-update-tag)
 
-(advice-add 'org-agenda :before #'vulpea-agenda-files-update)
-(advice-add 'org-todo-list :before #'vulpea-agenda-files-update)
+  (advice-add 'org-agenda :before #'vulpea-agenda-files-update)
+  (advice-add 'org-todo-list :before #'vulpea-agenda-files-update))
 #+end_src
-**** Org-roam2 UI
+*** Org-roam2 UI
 #+begin_src emacs-lisp
 (use-package! websocket
   :after org-roam)
@@ -298,130 +293,176 @@ If the property is already set, replace its value."
   :after org-roam
   ;; :hook (after-init . org-roam-ui-mode)
   :config
-  (setq org-roam-ui-sync-theme t
-        org-roam-ui-follow t
-        org-roam-ui-update-on-save t
-        org-roam-ui-open-on-start t))
+  (setq
+   org-roam-ui-sync-theme t
+   org-roam-ui-follow t
+   org-roam-ui-update-on-save t
+   org-roam-ui-open-on-start t))
 #+end_src
-*** Org-Download
+** Org-Download
 #+begin_src emacs-lisp
+(setq! org-download-image-dir (expand-file-name "images" org-directory)) ;; to get around of doom config
 (after! org-download
-  (setq! org-download-method 'directory))
-         ;; org-download-heading-lvl 1))
-(after! org
-  (setq! org-download-image-dir "images"
+  (setq! org-download-method 'directory
          org-download-image-org-width 300))
 #+end_src
-*** olivetti
+** olivetti
 #+begin_src emacs-lisp
-(use-package! olivetti)
-  ;; :hook (org-mode . olivetti-mode))
+(use-package! olivetti
+  :after org )
 #+end_src
-** Chinese IME -- RIME Set
-主要是 rime 在 emacs 里面可以根据前后情况来自动切换中英文真的太爽了。
+* Chinese IME
++主要是 rime 在 emacs 里面可以根据前后情况来自动切换中英文真的太爽了。+
+现在 pyim 也可以
 #+begin_src emacs-lisp
-(use-package! rime
-  ;; :hook
-  ;; :init
-  :config
-  (define-key rime-mode-map (kbd "M-q") 'rime-force-enable)
-  (defun rime-predicate-tex-math-or-command-p ()
-    "If point is inside a (La)TeX math environment, or a (La)TeX command.
-
-    Return true if the buffer is in `tex-mode' and one of the following three cases occurs:
-
-    1. The point is inside a (La)TeX math environment;
-    2. The current character is `$' or `\\', either at the beginning of a line, or after an ascii/space.
-    3. The string before the point is of the form a (La)TeX command. If the command have a parameter, it is closed by `}' or `%'. If not, it is closed by a space or `%'.
-
-    Can be used in `rime-disable-predicates' and `rime-inline-predicates'."
-    (and (derived-mode-p 'tex-mode 'org-mode)
-         (or (and (featurep 'tex-site)
-                  (texmathp))
-             (and rime--current-input-key
-                  (or (= #x24 rime--current-input-key)
-                      (= #x5c rime--current-input-key))
-                  (or (= (point) (line-beginning-position))
-                      (= #x20 (char-before))
-                      (rime-predicate-after-ascii-char-p)))
-             (and (> (point) (save-excursion (back-to-indentation) (point)))
-                  (let ((string (buffer-substring (point) (max (line-beginning-position) (- (point) 80)))))
-                    (or (string-match-p "[\x5c][\x21-\x24\x26-\x7e]*$" string)
-                        (string-match-p "[\x5c][a-zA-Z\x23\x40]+[\x7b][^\x7d\x25]*$" string)))))))
-  (setq! rime-show-candidate 'posframe
-         rime-emacs-module-header-root "/opt/homebrew/opt/emacs-plus/include"
-         rime-show-preedit 'inline
-         default-input-method "rime"
-         rime-librime-root (expand-file-name "librime/dist" user-emacs-directory)
-         rime-disable-predicates '(rime-predicate-after-alphabet-char-p          ;;在英文字符串之后（必须为以字母开头的英文字符串）
-                                   rime-predicate-after-ascii-char-p             ;;任意英文字符后
-                                   rime-predicate-prog-in-code-p                 ;;在`prog-mode'和`conf-mode'中除了注释和引号内字符串之外的区域
-                                   rime-predicate-in-code-string-p               ;;在代码的字符串中，不含注释的字符串。
-                                   rime-predicate-evil-mode-p                    ;;在`evil-mode'的非编辑状态下
-                                        ;rime-predicate-ace-window-p                   ;;激活`ace-window-mode'
-                                        ;rime-predicate-hydra-p                        ;;如果激活了一个`hydra'keymap
-                                        ;rime-predicate-current-input-punctuation-p    ;;当要输入的是符号时
-                                   rime-predicate-punctuation-after-space-cc-p   ;;当要在中文字符且有空格之后输入符号时
-                                   rime-predicate-punctuation-after-ascii-p      ;;当要在任意英文字符之后输入符号时
-                                   rime-predicate-punctuation-line-begin-p       ;;在行首要输入符号时
-                                        ;rime-predicate-space-after-ascii-p            ;;在任意英文字符且有空格之后
-                                   rime-predicate-space-after-cc-p               ;;在中文字符且有空格之后
-                                   rime-predicate-current-uppercase-letter-p     ;;将要输入的为大写字母时
-                                        ;rime-predicate-org-in-src-block-p             ;;在`org-src-block'中时
-                                   rime-predicate-tex-math-or-command-p)         ;;在 (La)TeX 数学环境中或者输入 (La)TeX 命令时
-         rime-posframe-properties (list :font "Hiragino Sans GB-18"
-                                        :internal-border-width 3)))
+(after! pyim
+  (map! "M-q" #'pyim-convert-string-at-point)
+  (setq!
+   pyim-dicts '((:name "tsinghua" :file "~/.config/emacs/.local/cache/pyim-dict/pyim-tsinghua-dict.pyim"))
+   pyim-page-style 'one-line
+   pyim-page-length 8)
+  (setq-default pyim-english-input-switch-functions
+                '(pyim-probe-dynamic-english
+                  pyim-probe-isearch-mode
+                  pyim-probe-program-mode
+                  pyim-probe-org-structure-template))
+  (setq-default pyim-punctuation-half-width-functions
+                '(pyim-probe-punctuation-line-begining
+                  pyim-probe-punctuation-after-punctuation)))
 #+end_src
-*** 中文分词
 #+begin_src emacs-lisp
-(use-package! cns
-  :init
-  (setq cns-process-shell-command "/Users/hyluo/tmp/jieba-rs-wrapper/target/debug/jieba-rs-wrapper")
-  :config
-  (setq cns-prog "/Users/hyluo/.emacs.d/.local/straight/repos/emacs-chinese-word-segmentation/cnws"
-        cns-dict-directory "/Users/hyluo/.emacs.d/.local/straight/repos/emacs-chinese-word-segmentation/cppjieba/dict"
-        cns-recent-segmentation-limit 20
-        cns-debug nil))
+;; (use-package! rime
+;;   ;; :hook
+;;   ;; :init
+;;   :config
+;;   (define-key rime-mode-map (kbd "M-q") 'rime-force-enable)
+;;   (defun rime-predicate-tex-math-or-command-p ()
+;;     "If point is inside a (La)TeX math environment, or a (La)TeX command.
+
+;;     Return true if the buffer is in `tex-mode' and one of the following three cases occurs:
+
+;;     1. The point is inside a (La)TeX math environment;
+;;     2. The current character is `$' or `\\', either at the beginning of a line, or after an ascii/space.
+;;     3. The string before the point is of the form a (La)TeX command. If the command have a parameter, it is closed by `}' or `%'. If not, it is closed by a space or `%'.
+
+;;     Can be used in `rime-disable-predicates' and `rime-inline-predicates'."
+;;     (and (derived-mode-p 'tex-mode 'org-mode)
+;;          (or (and (featurep 'tex-site)
+;;                   (texmathp))
+;;              (and rime--current-input-key
+;;                   (or (= #x24 rime--current-input-key)
+;;                       (= #x5c rime--current-input-key))
+;;                   (or (= (point) (line-beginning-position))
+;;                       (= #x20 (char-before))
+;;                       (rime-predicate-after-ascii-char-p)))
+;;              (and (> (point) (save-excursion (back-to-indentation) (point)))
+;;                   (let ((string (buffer-substring (point) (max (line-beginning-position) (- (point) 80)))))
+;;                     (or (string-match-p "[\x5c][\x21-\x24\x26-\x7e]*$" string)
+;;                         (string-match-p "[\x5c][a-zA-Z\x23\x40]+[\x7b][^\x7d\x25]*$" string)))))))
+;;   (setq! rime-show-candidate 'posframe
+;;          rime-emacs-module-header-root "/opt/homebrew/opt/emacs-plus/include"
+;;          rime-show-preedit 'inline
+;;          default-input-method "rime"
+;;          rime-librime-root (expand-file-name "librime/dist" user-emacs-directory)
+;;          rime-disable-predicates '(rime-predicate-after-alphabet-char-p          ;;在英文字符串之后（必须为以字母开头的英文字符串）
+;;                                    rime-predicate-after-ascii-char-p             ;;任意英文字符后
+;;                                    rime-predicate-prog-in-code-p                 ;;在`prog-mode'和`conf-mode'中除了注释和引号内字符串之外的区域
+;;                                    rime-predicate-in-code-string-p               ;;在代码的字符串中，不含注释的字符串。
+;;                                    rime-predicate-evil-mode-p                    ;;在`evil-mode'的非编辑状态下
+;;                                         ;rime-predicate-ace-window-p                   ;;激活`ace-window-mode'
+;;                                         ;rime-predicate-hydra-p                        ;;如果激活了一个`hydra'keymap
+;;                                         ;rime-predicate-current-input-punctuation-p    ;;当要输入的是符号时
+;;                                    rime-predicate-punctuation-after-space-cc-p   ;;当要在中文字符且有空格之后输入符号时
+;;                                    rime-predicate-punctuation-after-ascii-p      ;;当要在任意英文字符之后输入符号时
+;;                                    rime-predicate-punctuation-line-begin-p       ;;在行首要输入符号时
+;;                                         ;rime-predicate-space-after-ascii-p            ;;在任意英文字符且有空格之后
+;;                                    rime-predicate-space-after-cc-p               ;;在中文字符且有空格之后
+;;                                    rime-predicate-current-uppercase-letter-p     ;;将要输入的为大写字母时
+;;                                         ;rime-predicate-org-in-src-block-p             ;;在`org-src-block'中时
+;;                                    rime-predicate-tex-math-or-command-p)         ;;在 (La)TeX 数学环境中或者输入 (La)TeX 命令时
+;;          rime-posframe-properties (list :font "Hiragino Sans GB-18"
+;;                                         :internal-border-width 3)))
 #+end_src
-** Mac's key Sets
+** 中文分词
+#+begin_src emacs-lisp
+;; (use-package! cns
+;;   :init
+;;   (setq cns-process-shell-command "/Users/hyluo/tmp/jieba-rs-wrapper/target/debug/jieba-rs-wrapper")
+;;   :config
+;;   (setq cns-prog "/Users/hyluo/.emacs.d/.local/straight/repos/emacs-chinese-word-segmentation/cnws"
+;;         cns-dict-directory "/Users/hyluo/.emacs.d/.local/straight/repos/emacs-chinese-word-segmentation/cppjieba/dict"
+;;         cns-recent-segmentation-limit 20
+;;         cns-debug nil))
+#+end_src
+* MacOS
 主要还是为了贴合 linux 的操作习惯吧，按上去 Alt 作为 meta 在一些场景下也更舒服
 #+begin_src emacs-lisp
-(setq! mac-command-modifier     'meta
-       mac-option-modifier      'super
-       mac-right-option-modifier 'left)
+(setq!
+ mac-command-modifier     'meta
+ mac-option-modifier      'super
+ mac-right-option-modifier 'left)
 #+end_src
-** Biblio
+* Biblio
 #+begin_src emacs-lisp
-(setq! citar-bibliography '("~/Documents/org/biblio.bib"))
+(after! citar
+  (setq! citar-bibliography '("~/Documents/org/biblio.bib")))
 #+end_src
-** Latex Sets
+* Latex
 #+begin_src emacs-lisp
-(setq-default TeX-engine 'xetex)
-(setq! +latex-viewers '(pdf-tools)
-       ;; reftex-default-bibliography (expand-file-name "bib/references.bib" org-directory)
-       TeX-command-extra-options "-view=none")
+(after! latex
+  (setq-default TeX-engine 'xetex)
+  (setq!
+   +latex-viewers '(pdf-tools)
+   ;; reftex-default-bibliography (expand-file-name "bib/references.bib" org-directory)
+   TeX-command-extra-options "-view=none"))
 #+end_src
-*** cd Latex sets
+** cd Latex sets
 #+begin_src emacs-lisp
-(map! :map cdlatex-mode-map
-      :i "TAB" #'cdlatex-tab)
-(setq! cdlatex-command-alist '(("fra" "Insert \\frac{}{}" "\\frac{?}{}" cdlatex-position-cursor nil nil t)))
+(after! cdlatex
+  (map! :map cdlatex-mode-map
+        :i "TAB" #'cdlatex-tab)
+  (setq! cdlatex-command-alist '(("fra" "Insert \\frac{}{}" "\\frac{?}{}" cdlatex-position-cursor nil nil t))))
 #+end_src
-** Company Sets
+* Company
 #+begin_src emacs-lisp
-(after! company (setq! company-idle-delay 0))
+(after! company (setq! company-idle-delay 0.1))
 #+end_src
+** CAPF file path
+#+begin_src emacs-lisp
+;; (after! company
+  ;; (autoload 'ffap-file-at-point "ffap")
+  ;; (defun complete-path-at-point+ ()
+  ;;   "Return completion data for UNIX path at point."
+  ;;   (let ((fn (ffap-file-at-point))
+  ;;         (fap (thing-at-point 'filename)))
+  ;;     (when (and (or fn (equal "/" fap))
+  ;;                (save-excursion
+  ;;                  (search-backward fap (line-beginning-position) t)))
+  ;;       (list (match-beginning 0)
+  ;;             (match-end 0)
+  ;;             #'completion-file-name-table :exclusive 'no))))
 
-** Which-key Sets
+  ;; (add-hook 'completion-at-point-functions
+            ;; #'complete-path-at-point+
+            ;; 'append)
+;; )
+#+end_src
+* Spell Check
+#+begin_src emacs-lisp
+(after! fly-spell
+  (setq! ispell-dictionary "english"))
+
+#+end_src
+* Which-key
 #+begin_src emacs-lisp
 ;; (after! which-key (setq! which-key-idle-delay 0.2))
                          ;; which-key-max-description-length 80))
 #+end_src
-** Smartparrens
+* Smartparrens
 #+begin_src emacs-lisp
 ;; (sp-local-pair 'org-mode "$" "$")
 #+end_src
-** LSP
+* LSP
 #+begin_src emacs-lisp
  (map!
   (:after lsp-mode
@@ -429,23 +470,25 @@ If the property is already set, replace its value."
                 "l" #'lsp-avy-lens)))
 #+end_src
 
-*** rust
+** rust
 #+begin_src emacs-lisp
 (after! rustic
-       (setq! lsp-rust-analyzer-server-display-inlay-hints t
-              lsp-rust-clippy-preference "on"
-              lsp-rust-analyzer-cargo-watch-command "clippy"))
+  (setq!
+   lsp-rust-analyzer-server-display-inlay-hints t
+   lsp-rust-clippy-preference "on"
+   lsp-rust-analyzer-cargo-watch-command "clippy"))
 #+end_src
 
-*** scala
+** scala
 #+begin_src emacs-lisp
 (after! scala
-  (setq! ;; lsp-metals-show-inferred-type t
+  (setq!
+   ;; lsp-metals-show-inferred-type t
    lsp-metals-show-implicit-arguments t
    lsp-metals-super-method-lenses-enabled t
    lsp-metals-show-implicit-conversions-and-classes t))
 #+end_src
-*** python
+** python
 #+begin_src emacs-lisp
 ;; for remote pyright
 ;; (setq lsp-log-io t)
@@ -474,25 +517,22 @@ If the property is already set, replace its value."
 ;;                                  ("pyright/reportProgress" 'lsp-pyright--report-progress-callback)
 ;;                                  ("pyright/endProgress" 'lsp-pyright--end-progress-callback))))
 #+end_src
-*** verilog
+** verilog
 #+begin_src emacs-lisp
-;; (require 'lsp-verilog)
-
+(add-hook! verilog-mode
+  (require 'lsp-mode)
+  (add-to-list 'lsp-language-id-configuration '(verilog-mode . "verilog"))
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection "verible-verilog-ls")
+                    :major-modes '(verilog-mode)
+                    :server-id 'verible-ls))
+  (rainbow-delimiters-mode)
+  (lsp))
 ;; (custom-set-variables
 ;;   '(lsp-clients-svlangserver-launchConfiguration "verilator -timing -sv --lint-only -Wall")
 ;;   '(lsp-clients-svlangserver-formatCommand "verible-verilog-format"))
-(after! lsp
-(add-to-list 'lsp-language-id-configuration
-             '(verilog-mode . "verilog"))
-(lsp-register-client
- (make-lsp--client :new-connection (lsp-stdio-connection '("poetry" "run" "python" "src/main.py"))
-                   :activation-fn (lsp-activate-on "verilog")
-                   :priority -1
-                   :server-id 'slangserver)))
-
-;; (add-hook 'verilog-mode-hook #'lsp-deferred)
 #+end_src
-*** cpp
+** cpp
 #+begin_src emacs-lisp
 (after! lsp-clangd
   (setq lsp-clients-clangd-args
@@ -504,24 +544,36 @@ If the property is already set, replace its value."
           "--header-insertion-decorators=0"))
   (set-lsp-priority! 'clangd 2))
 #+end_src
-** Treemacs
+* Treemacs
 #+begin_src emacs-lisp
 (after! treemacs
-  (setq! +treemacs-git-mode 'deferred))
+  (setq! +treemacs-git-mode 'deferred
+         treemacs-project-follow-mode t))
 #+end_src
-** Vertico
+* Vertico
 #+begin_src emacs-lisp
-(map!
- (:after vertico
-         (:map vertico-map
-               "C-S-n" #'vertico-scroll-up
-               "C-S-p" #'vertico-scroll-down)))
+;; (map!
+;;  (:after vertico
+;;          (:map vertico-map
+;;                "C-S-n" #'vertico-scroll-up
+;;                "C-S-p" #'vertico-scroll-down)))
 #+end_src
-** Consult
+** Orderless + pinyin
+在doom:chinese 中已经有了对应的实现
 #+begin_src emacs-lisp
-(setq! consult-locate-args "mdfind")
+;; (after! orderless
+;;   (defun my-orderless-regexp (orig-func component)
+;;     (let ((result (funcall org-func component)))
+;;       (pyim-cregexp-build result)))
+;;   (advice-add 'orderless-regexp :round #'my-orderless-regexp)
 #+end_src
-** Evil
+* Consult
 #+begin_src emacs-lisp
-(setq! evil-snipe-scope 'visible)
+(after! consult
+  (setq! consult-locate-args "mdfind"))
+#+end_src
+* Evil
+也没 consult 好用
+#+begin_src emacs-lisp
+;; (setq! evil-snipe-scope 'visible)
 #+end_src

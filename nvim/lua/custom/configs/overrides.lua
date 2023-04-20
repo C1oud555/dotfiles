@@ -2,6 +2,7 @@ local M = {}
 
 M.treesitter = {
   ensure_installed = {
+    "vim",
     "lua",
     "verilog",
     "rust",
@@ -11,29 +12,27 @@ M.treesitter = {
     "cpp",
     "python",
   },
+  indent = {
+    enable = true,
+    disable = {
+      "python",
+    },
+  },
 }
 
+-- git support in nvimtree
 M.nvimtree = {
   git = {
     enable = true,
-    ignore = true,
-    show_on_dirs = true,
-    timeout = 400,
   },
+
   renderer = {
+    highlight_git = true,
     icons = {
       show = {
         git = true,
       },
     },
-  },
-}
-M.nvchadui = {
-  statusline = {
-    separator_style = "round",
-  },
-  tabufline = {
-    enabled = false,
   },
 }
 

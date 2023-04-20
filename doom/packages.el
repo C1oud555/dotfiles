@@ -5,24 +5,13 @@
 ;; on the command line, then restart Emacs for the changes to take effect -- or
 ;; use 'M-x doom/reload'.
 
-;;;;;;;;; temp work around
-;;(package! transient :pin "c2bdf7e12c530eb85476d3aef317eb2941ab9440")
-;;(package! with-editor :pin "bbc60f68ac190f02da8a100b6fb67cf1c27c53ab")
-;;;;;;;;;
-
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:
-(package! rime)
-(package! verilog-mode)
+
 (package! valign)
-(package! pinyinlib)
 (package! olivetti)
-(package! cns
-  :recipe (:host github :repo "kanglmf/emacs-chinese-word-segmentation"))
 
 (unpin! org-roam)
 (package! org-roam-ui)
-;; (package! mac-pseudo-daemon)
-;; (package! vulpea)
 
 
 ;; To install a package directly from a remote git repo, you must specify a
@@ -41,16 +30,8 @@
 ;; If you'd like to disable a package included with Doom, you can do so here
 ;; with the `:disable' property:
 
-(package! ace-pinyin :disable t)
-(package! chinese-wbim :disable t)
-(package! pyim :disable t)
-(package! fcitx :disable t)
-
 (package! ivy-bibtex :disable t)
 (package! helm-bibtex :disable t)
-
-(package! pipenv :disable t)
-
 
 ;; You can override the recipe of a built in package without having to specify
 ;; all the properties for `:recipe'. These will inherit the rest of its recipe
