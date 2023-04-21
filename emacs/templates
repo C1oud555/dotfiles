@@ -5,12 +5,17 @@
 ;; fundamental-mode ;; Available everywhere
 
 scala-mode
-(object "object " p " {" n> p n> "}")
 
 verilog-mode
-(module "module " p ";" n> n "endmodule")
-(always_comb "always_comb begin" n> n> "end")
-(begin_end "begin" n> r> n> "end")
+;; after some research; verilog-template-map is the best
+;; (always_comb "always_comb begin" n> p n "end" >)
+;; (always_ff "always_ff @( posedge " (p "clk") " or negedge " (p "rstn") " ) begin" n> p n "end" >)
+;; (initial "initial begin" n> p n "end" >)
+(if "if (" p ") begin" n> p n "end" >)
+;; (ifel "if (" (p "condi") ") begin" n> p n "end" n> > "else begin" n> p n "end" >)
+(begin "begin" n> p n "end" >)
+(else "else begin" n> p n "end" >)
+(elif "else if (" p ") begin" n> p n "end" >)
 
 
 ;; Local Variables:
