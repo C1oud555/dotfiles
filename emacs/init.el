@@ -50,6 +50,10 @@
   (prefer-coding-system 'utf-8)
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
+  ;; diff sets
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain
+        ediff-split-window-function 'split-window-horizontally
+        ediff-merge-split-window-function 'split-window-horizontally)
   (add-to-list 'default-frame-alist '(alpha-background . 90))
   (visual-line-mode)
   (global-hl-line-mode)
@@ -57,21 +61,24 @@
   (pixel-scroll-precision-mode)
   (setq-default vc-handled-backends '(Git))
   (defalias 'yes-or-no-p 'y-or-n-p)
-  ;; `org-modern' related settings
-  (load-theme 'modus-operandi)
   (set-face-attribute 'default nil :family "Monaco" :height 140)
   (set-face-attribute 'variable-pitch nil :family "Monaco" :height 140)
-
+  ;; `org-modern' related settings
+  ;; (load-theme 'modus-operandi)
   ;; Add frame borders and window dividers
-  (modify-all-frames-parameters
-   '((right-divider-width . 40)
-     (internal-border-width . 40)))
-  (dolist (face '(window-divider
-                  window-divider-first-pixel
-                  window-divider-last-pixel))
-    (face-spec-reset-face face)
-    (set-face-foreground face (face-attribute 'default :background)))
-  (set-face-background 'fringe (face-attribute 'default :background)))
+  ;; (modify-all-frames-parameters
+  ;;  '((right-divider-width . 30)
+  ;;    (internal-border-width . 30)))
+  ;; (dolist (face '(window-divider
+  ;;                 window-divider-first-pixel
+  ;;                 window-divider-last-pixel))
+  ;;   (face-spec-reset-face face)
+  ;;   (set-face-foreground face (face-attribute 'default :background)))
+  ;; (set-face-background 'fringe (face-attribute 'default :background))
+  ;; `org-modern' related settings end
+  (add-to-list 'display-buffer-alist
+               '("\\*scratch\\*" display-buffer-at-bottom
+                 (window-height . 0.3))))
 
 ;; auto save
 (use-package saveplace
@@ -253,7 +260,7 @@
   "," 'consult-buffer
   "`" 'evil-switch-to-windows-last-buffer
   "'" 'vertico-repeat
-  ">" 'find-file-other-window
+  ;; ">" 'find-file-other-window
   "/" 'consult-ripgrep
 
   "b" '(:ignore t :which-key "buffer")
@@ -282,6 +289,7 @@
 
   "h" '(:ignore t :which-key "help")
   "hf" 'describe-function
+  "hF" 'helpful-function
   "hv" 'describe-variable
   "hc" 'describe-command
   "hm" 'describe-mode
@@ -316,11 +324,15 @@
   "nt" 'org-todo-list
   "nl" 'consult-org-roam-forward-links
   "ns" 'consult-org-roam-search
+  "nr" 'org-roam-buffer-toggle
   "nf" 'org-roam-node-find
 
   "s" '(:ignore t :which-key "search")
   "sf" 'consult-find-under-here
+  "sF" 'consult-find-other
   "sd" 'consult-ripgrep-under-here
+  "sD" 'consult-ripgrep-other
+  "st" 'osx-dictionary-search-word-at-point
   "ss" 'consult-line)
 
 ;; some habits binding
@@ -330,12 +342,13 @@
   "[F" 'ns-prev-frame
   "[e" 'flymake-goto-prev-error
   "]e" 'flymake-goto-next-error)
-(general-imap
-  :keymaps 'override
-  "C-a" 'beginning-of-line
-  "C-e" 'end-of-line
-  "C-p" 'previous-line
-  "C-n" 'next-line)
+;; Not practical, break in vterm mode
+;; (general-imap
+;;   :keymaps 'override
+;;   "C-a" 'beginning-of-line
+;;   "C-e" 'end-of-line
+;;   "C-p" 'previous-line
+;;   "C-n" 'next-line)
 
 ;; add shortcuts to windows
 (general-define-key
@@ -472,7 +485,30 @@
    :preview-key '(:debounce 0.4 any)
    consult-recent-file consult-ripgrep consult-git-grep
    consult-grep :preview-key "C-SPC")
-  (setq consult-narrow-key "<"))
+  (setq consult-narrow-key "<")
+
+  (defun consult-find-under-here (&optional initial)
+    ;; find file current directory
+    (interactive "P")
+    (consult-find default-directory initial))
+
+  (defun consult-ripgrep-under-here (&optional initial)
+    ;; grep file current directory
+    (interactive "P")
+    (consult-ripgrep default-directory initial))
+
+  (defun consult-find-other (&optional initial)
+    ;; find file other directory
+    (interactive "P")
+    (let ((default-directory (read-directory-name "Search find file directory")))
+      (consult-find default-directory initial)))
+
+  (defun consult-ripgrep-other (&optional initial)
+    ;; grep file other directory
+    (interactive "P")
+    (let ((default-directory (read-directory-name "Search find file directory")))
+      (consult-ripgrep default-directory initial)))
+  )
 
 ;; find and act
 (use-package embark
@@ -563,7 +599,9 @@
                    (let ((buffer (get-buffer buffer-or-name)))
                      (with-current-buffer buffer
                        (or (equal major-mode 'helpful-mode)))))
-                 (display-buffer-at-bottom)
+                 (display-buffer-reuse-window display-buffer-in-side-window)
+                 (side . bottom)
+                 (reusable-frames . visible)
                  (window-height . 0.3))))
 
 ;; real terminal
@@ -577,7 +615,8 @@
                      (with-current-buffer buffer
                        (or (equal major-mode 'vterm-mode)
                            (string-prefix-p vterm-buffer-name (buffer-name buffer))))))
-                 (display-buffer-reuse-window display-buffer-at-bottom)
+                 (display-buffer-reuse-window display-buffer-in-side-window)
+                 (side . bottom)
                  (reusable-frames . visible)
                  (window-height . 0.3)))
   (add-hook 'vterm-mode-hook (lambda () (display-line-numbers-mode -1)))
@@ -589,6 +628,10 @@
 ;; better manage `vterm'
 (use-package vterm-toggle
   :after vterm)
+
+(use-package hide-mode-line
+  :hook ((osx-dictionary-mode org-roam-mode helpful-mode vterm-mode) . hide-mode-line-mode)
+  :defer t)
 
 ;; focus!
 (use-package olivetti
@@ -645,6 +688,27 @@
   :init
   (global-pangu-spacing-mode))
 
+(use-package pyim-basedict
+  :after pyim
+  :config
+  (pyim-basedict-enable))
+
+(use-package pyim
+  :commands (toggle-input-method pyim-convert-string-at-pint)
+  :init
+  (setq default-input-method "pyim")
+  :bind
+  ("M-q" . pyim-convert-string-at-point)
+  :config
+  (advice-add #'orderless-regexp
+              :filter-return
+              #'pyim-cregexp-build)
+  (setq-default pyim-english-input-switch-functions
+                '(pyim-probe-dynamic-english
+                  pyim-probe-isearch-mode
+                  pyim-probe-program-mode
+                  pyim-probe-org-structure-template))
+  )
 ;; get shell VARIABLE in emacs
 (use-package exec-path-from-shell
   :defer t
@@ -933,7 +997,8 @@ If nil it defaults to `split-string-default-separators', normally
   :after org
   :hook (org-mode org-agenda-mode)
   :general
-  (:keymaps 'org-mode-map :states '(normal, visual, insert) "RET" #'evil-org-return)
+  (general-mmap org-mode-map
+    "RET" 'evil-org-return)
   :config
   (evil-org-set-key-theme '(navigation insert textobjects additional calendar))
   (require 'evil-org-agenda)
@@ -1106,40 +1171,64 @@ This function is called by `org-babel-execute-src-block'."
 (use-package persistent-scratch
   :config (persistent-scratch-autosave-mode))
 
-(use-package org-modern
-  :after org
-  :init
-  (setq
-   ;; Edit settings
-   org-auto-align-tags nil
-   org-tags-column 0
-   org-catch-invisible-edits 'show-and-error
-   org-special-ctrl-a/e t
-   org-insert-heading-respect-content t
+;; (use-package org-modern
+;;   :after org
+;;   :init
+;;   (setq
+;;    ;; Edit settings
+;;    org-auto-align-tags nil
+;;    org-tags-column 0
+;;    org-catch-invisible-edits 'show-and-error
+;;    org-special-ctrl-a/e t
+;;    org-insert-heading-respect-content t
 
-   ;; Org styling, hide markup etc.
-   org-hide-emphasis-markers t
-   org-pretty-entities t
-   org-ellipsis "…"
+;;    ;; Org styling, hide markup etc.
+;;    org-hide-emphasis-markers t
+;;    org-pretty-entities t
+;;    org-ellipsis "…"
 
-   ;; Agenda styling
-   org-agenda-tags-column 0
-   org-agenda-block-separator ?─
-   org-agenda-time-grid
-   '((daily today require-timed)
-     (800 1000 1200 1400 1600 1800 2000)
-     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
-   org-agenda-current-time-string
-   "⭠ now ─────────────────────────────────────────────────")
+;;    ;; Agenda styling
+;;    org-agenda-tags-column 0
+;;    org-agenda-block-separator ?─
+;;    org-agenda-time-grid
+;;    '((daily today require-timed)
+;;      (800 1000 1200 1400 1600 1800 2000)
+;;      " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+;;    org-agenda-current-time-string
+;;    "⭠ now ─────────────────────────────────────────────────")
 
-  :config
-  (set-face-attribute 'org-modern-symbol nil :family "Monaco" :height 140)
-  ;; TODO because the table is not currently "pixel aligned"
-  ;; And after that, we may not need `valign-mode' any more
-  (setq org-modern-table nil)
-  (global-org-modern-mode))
+;;   :config
+;;   (set-face-attribute 'org-modern-symbol nil :family "Monaco" :height 140)
+;;   ;; TODO because the table is not currently "pixel aligned"
+;;   ;; And after that, we may not need `valign-mode' any more
+;;   (setq org-modern-table nil)
+;;   (global-org-modern-mode))
 
 (use-package org-download)
+
+(use-package osx-dictionary
+  :if (memq window-system '(mac ns))
+  :config
+  (add-to-list 'display-buffer-alist
+               '("\\*osx-dictionary\\*"
+                 (display-buffer-in-side-window)
+                 (side . bottom)
+                 (slot . 0)
+                 (window-width . 0.33)
+                 (window-parameter . ((no-other-window . t)
+                                      (no-delete-other-windows . t))))))
+
+(use-package doom-themes
+  :config
+  (load-theme 'doom-one t))
+
+(use-package org-superstar
+  :after org
+  :hook
+  (org-mode . org-superstar-mode)
+  :config
+  (setq org-superstar-loading-bullet ?\s
+        ortg-superstar-leading-fallback ?\s))
 
 (provide 'init)
 
