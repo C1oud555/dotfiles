@@ -22,6 +22,13 @@
 (when (not package-archive-contents)
   (package-refresh-contents))
 
+;; `benchmark' for opt
+(use-package benchmark-init
+  :ensure t
+  :config
+  ;; To disable collection of benchmark data after init is done.
+  (add-hook 'after-init-hook 'benchmark-init/deactivate))
+
 ;; ensure all package listed here get installed.
 (eval-and-compile
   (setq use-package-always-ensure t))
@@ -63,19 +70,7 @@
   (defalias 'yes-or-no-p 'y-or-n-p)
   (set-face-attribute 'default nil :family "Monaco" :height 140)
   (set-face-attribute 'variable-pitch nil :family "Monaco" :height 140)
-  ;; `org-modern' related settings
-  ;; (load-theme 'modus-operandi)
-  ;; Add frame borders and window dividers
-  ;; (modify-all-frames-parameters
-  ;;  '((right-divider-width . 30)
-  ;;    (internal-border-width . 30)))
-  ;; (dolist (face '(window-divider
-  ;;                 window-divider-first-pixel
-  ;;                 window-divider-last-pixel))
-  ;;   (face-spec-reset-face face)
-  ;;   (set-face-foreground face (face-attribute 'default :background)))
-  ;; (set-face-background 'fringe (face-attribute 'default :background))
-  ;; `org-modern' related settings end
+  ;; let scratch buffer show at bottom
   (add-to-list 'display-buffer-alist
                '("\\*scratch\\*" display-buffer-at-bottom
                  (window-height . 0.3))))
@@ -108,7 +103,7 @@
 (use-package eldoc
   :defer t
   :ensure nil
-  :diminish eldoc-mode
+  :diminish
   :config
   (setq eldoc-idle-delay 0.4 ;; show faster
         eldoc-echo-area-use-multiline-p 3 ;; only three lines
@@ -185,6 +180,7 @@
 
 ;; I can't live without evil
 (use-package evil
+  :defer 0.3
   :init
   (setq evil-respect-visual-line-mode t)
   (setq evil-want-keybinding nil)
@@ -342,13 +338,6 @@
   "[F" 'ns-prev-frame
   "[e" 'flymake-goto-prev-error
   "]e" 'flymake-goto-next-error)
-;; Not practical, break in vterm mode
-;; (general-imap
-;;   :keymaps 'override
-;;   "C-a" 'beginning-of-line
-;;   "C-e" 'end-of-line
-;;   "C-p" 'previous-line
-;;   "C-n" 'next-line)
 
 ;; add shortcuts to windows
 (general-define-key
@@ -408,8 +397,7 @@
   (corfu-auto t)
   (corfu-quit-no-match 'separator)
   (corfu-popupinfo-delay '(0.5 . 0.3))
-  (corfu-auto-delay 0.05)
-  (corfu-auto-prefix 1)
+  (corfu-auto-delay 0.1)
   (corfu-preselect 'first)
   :bind (:map corfu-map
               ("TAB" . corfu-next)
@@ -641,12 +629,6 @@
   (setq olivetti-style 'fancy)
   (setq olivetti-minimum-body-width 50))
 
-;; show things you need
-(use-package doom-modeline
-  :defer t
-  :hook (after-init . doom-modeline-mode)
-  :init (column-number-mode))
-
 ;; and icons
 (use-package all-the-icons
   :defer t
@@ -711,10 +693,11 @@
   )
 ;; get shell VARIABLE in emacs
 (use-package exec-path-from-shell
-  :defer t
+  :after evil
   :if (memq window-system '(mac ns))
   :config
-  (exec-path-from-shell-initialize))
+  (exec-path-from-shell-initialize)
+  (exec-path-from-shell-copy-env "JAVA_HOME"))
 
 ;; manage a real project
 (use-package project
@@ -934,7 +917,8 @@ If nil it defaults to `split-string-default-separators', normally
         org-fontify-done-headline t
         org-startup-with-inline-images t
         org-display-remote-inline-images 'cache
-        ;; org-startup-indented t
+        org-startup-indented t
+        org-cycle-include-plain-lists 'integrate
         org-fontify-quote-and-verse-blocks t
         org-fontify-whole-heading-line t
         org-hide-leading-stars t
@@ -972,6 +956,7 @@ If nil it defaults to `split-string-default-separators', normally
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((python . t)
+     (tcl . t)
      (plantuml . t)))
   (setq org-confirm-babel-evaluate nil
         org-babel-python-command "python3"))
@@ -1171,42 +1156,11 @@ This function is called by `org-babel-execute-src-block'."
 (use-package persistent-scratch
   :config (persistent-scratch-autosave-mode))
 
-;; (use-package org-modern
-;;   :after org
-;;   :init
-;;   (setq
-;;    ;; Edit settings
-;;    org-auto-align-tags nil
-;;    org-tags-column 0
-;;    org-catch-invisible-edits 'show-and-error
-;;    org-special-ctrl-a/e t
-;;    org-insert-heading-respect-content t
-
-;;    ;; Org styling, hide markup etc.
-;;    org-hide-emphasis-markers t
-;;    org-pretty-entities t
-;;    org-ellipsis "…"
-
-;;    ;; Agenda styling
-;;    org-agenda-tags-column 0
-;;    org-agenda-block-separator ?─
-;;    org-agenda-time-grid
-;;    '((daily today require-timed)
-;;      (800 1000 1200 1400 1600 1800 2000)
-;;      " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
-;;    org-agenda-current-time-string
-;;    "⭠ now ─────────────────────────────────────────────────")
-
-;;   :config
-;;   (set-face-attribute 'org-modern-symbol nil :family "Monaco" :height 140)
-;;   ;; TODO because the table is not currently "pixel aligned"
-;;   ;; And after that, we may not need `valign-mode' any more
-;;   (setq org-modern-table nil)
-;;   (global-org-modern-mode))
-
-(use-package org-download)
+(use-package org-download
+  :after org)
 
 (use-package osx-dictionary
+  :defer t
   :if (memq window-system '(mac ns))
   :config
   (add-to-list 'display-buffer-alist
@@ -1219,8 +1173,14 @@ This function is called by `org-babel-execute-src-block'."
                                       (no-delete-other-windows . t))))))
 
 (use-package doom-themes
+  :after doom-modeline
   :config
   (load-theme 'doom-one t))
+
+;; show things you need
+(use-package doom-modeline
+  :hook (after-init . doom-modeline-mode)
+  :init (column-number-mode))
 
 (use-package org-superstar
   :after org
@@ -1229,6 +1189,12 @@ This function is called by `org-babel-execute-src-block'."
   :config
   (setq org-superstar-loading-bullet ?\s
         ortg-superstar-leading-fallback ?\s))
+
+(use-package browse-at-remote
+  :defer t)
+
+(use-package org-contrib
+  :defer t)
 
 (provide 'init)
 
