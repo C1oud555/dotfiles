@@ -1,21 +1,9 @@
-local function border(hl_name)
-  return {
-    { "╭", hl_name },
-    { "─", hl_name },
-    { "╮", hl_name },
-    { "│", hl_name },
-    { "╯", hl_name },
-    { "─", hl_name },
-    { "╰", hl_name },
-    { "│", hl_name },
-  }
-end
-
 return {
   {
     'hrsh7th/nvim-cmp',
     event = "InsertEnter",
     dependencies = {
+      "L3MON4D3/LuaSnip",
       "saadparwaiz1/cmp_luasnip",
       "hrsh7th/cmp-nvim-lsp",
       "hrsh7th/cmp-buffer",
@@ -30,12 +18,12 @@ return {
         window = {
           completion = {
             side_padding = 1,
-            winhighlight = "Normal:CmpPmenu,CursorLine:CmpSel,Search:PmenuSel",
+            -- winhighlight = "Normal:CmpPmenu,CursorLine:CmpSel,Search:PmenuSel",
             scrollbar = false,
           },
           documentation = {
-            border = border "CmpDocBorder",
-            winhighlight = "Normal:CmpDoc",
+            border = "single"
+            -- winhighlight = "Normal:CmpDoc",
           },
         },
         snippet = {
@@ -77,12 +65,11 @@ return {
           }),
         },
         sources = cmp.config.sources({
-          { name = "nvim_lsp" },
-          { name = "luasnip" },
-          { name = "buffer" },
-          { name = "path" },
+          { name = "nvim_lsp", priority = 1000 },
+          { name = "luasnip",  priority = 750 },
+          { name = "buffer",   priority = 500 },
+          { name = "path",     priority = 250 },
         }),
-        formatting = {},
         experimental = {
           ghost_text = {
             hl_group = "LspCodeLens",
@@ -93,6 +80,7 @@ return {
   },
   {
     "L3MON4D3/LuaSnip",
+    event = "VeryLazy",
     dependencies = {
       "rafamadriz/friendly-snippets",
       config = function()

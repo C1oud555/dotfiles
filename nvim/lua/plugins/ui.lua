@@ -38,4 +38,13 @@ return {
     end
   },
   { "nvim-tree/nvim-web-devicons", lazy = true },
+  {
+    "nvim-lualine/lualine.nvim",
+    event = "VeryLazy",
+    config = function()
+      require("lualine").setup{
+        options = { theme = "onedark" }
+      }
+    end
+  }
 }

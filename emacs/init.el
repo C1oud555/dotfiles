@@ -2,7 +2,7 @@
 ;;; Commentary:
 
 ;; This file is a huge long config file of lhy's emacs
-;; empower by `use-packge' of emacs 29 built-in
+;; empower by `use-package' of emacs 29 built-in
 
 ;;; Code:
 
@@ -19,8 +19,9 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (setq package-enable-at-startup nil)
 (package-initialize)
-(when (not package-archive-contents)
-  (package-refresh-contents))
+(unless (package-installed-p 'use-package) ; ensure `use-packge' is installed
+  (package-refresh-contents)
+  (package-install 'use-package))
 
 ;; `benchmark' for opt
 (use-package benchmark-init
@@ -44,36 +45,26 @@
         auto-save-default nil
         frame-resize-pixelwise t
         create-lockfiles nil
-        locale-coding-system 'utf-8
-        coding-system-for-read 'utf-8
-        coding-system-for-write 'utf-8
-        default-process-coding-system '(utf-8-unix . utf-8-unix)
         confirm-kill-emacs  'y-or-n-p)
   (setq-default indent-tabs-mode nil)
   (set-charset-priority 'unicode)
-  (set-terminal-coding-system 'utf-8)
-  (set-keyboard-coding-system 'utf-8)
-  (set-selection-coding-system 'utf-8)
-  (prefer-coding-system 'utf-8)
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
   ;; diff sets
   (setq ediff-window-setup-function 'ediff-setup-windows-plain
         ediff-split-window-function 'split-window-horizontally
         ediff-merge-split-window-function 'split-window-horizontally)
-  (add-to-list 'default-frame-alist '(alpha-background . 90))
   (visual-line-mode)
   (global-hl-line-mode)
   (global-display-line-numbers-mode t)
-  (pixel-scroll-precision-mode)
+  ;; (pixel-scroll-precision-mode)
   (setq-default vc-handled-backends '(Git))
   (defalias 'yes-or-no-p 'y-or-n-p)
-  (set-face-attribute 'default nil :family "Monaco" :height 140)
-  (set-face-attribute 'variable-pitch nil :family "Monaco" :height 140)
-  ;; let scratch buffer show at bottom
-  (add-to-list 'display-buffer-alist
-               '("\\*scratch\\*" display-buffer-at-bottom
-                 (window-height . 0.3))))
+  (set-face-attribute 'default nil :family "SF Mono" :height 160)
+  (if (display-graphic-p)
+      (dolist (charset '(kana han symbol cjk-misc bopomofo))
+        (set-fontset-font (frame-parameter nil 'font) charset
+                          (font-spec :family "Hiragino Sans GB")))))
 
 ;; auto save
 (use-package saveplace
@@ -98,30 +89,6 @@
   :defer t
   :ensure nil
   :hook (after-init . global-auto-revert-mode))
-
-;; eldoc: Show doc in echo area
-(use-package eldoc
-  :defer t
-  :ensure nil
-  :diminish
-  :config
-  (setq eldoc-idle-delay 0.4 ;; show faster
-        eldoc-echo-area-use-multiline-p 3 ;; only three lines
-        eldoc-echo-area-display-truncation-message nil)
-  ;; Dispaly `*eldoc*' buffer at the bottom
-  (add-to-list 'display-buffer-alist
-               '("^\\*eldoc for" display-buffer-at-bottom
-                 (window-height . 0.3))))
-
-;; enhance `eldoc' with `posframe'
-(use-package eldoc-box
-  :after eldoc
-  :bind
-  ;; normally the eldoc will display at echo area
-  ;; But After bind `eldoc-doc-buffer' to `K' in
-  ;; `evil-collection' and this remap. I can use
-  ;; `K' to get a hover information at point
-  ([remap eldoc-doc-buffer] . eldoc-box-help-at-point))
 
 ;; highlight parens
 (use-package paren
@@ -186,7 +153,11 @@
   (setq evil-want-keybinding nil)
   (setq evil-undo-system 'undo-redo)
   :config
-  (evil-mode))
+  (evil-mode)
+  ;; add shortcuts to windows
+  (general-define-key
+   :keymaps 'evil-window-map
+   "m" 'maximize-window))
 
 ;; lots of use set up with evil
 (use-package evil-collection
@@ -263,11 +234,13 @@
   "bk" 'kill-current-buffer
 
   "c" '(:ignore t :which-key "code")
-  "ca" 'eglot-code-actions
-  "cx" 'consult-flymake
-  "cf" 'eglot-format
-  "cr" 'eglot-rename
-  "cj" 'consult-eglot-symbols
+  "ca" 'lsp-execute-code-action
+  "cx" 'consult-lsp-diagnostics
+  "cf" 'lsp-format-buffer
+  "cl" 'lsp-avy-lens
+  "cr" 'lsp-rename
+  "cs" 'consult-lsp-file-symbols
+  "cS" 'consult-lsp-symbols
 
   "e" '(:ignore t :which-key "eval")
   "eb" 'eval-buffer
@@ -299,7 +272,7 @@
   "o" '(:ignore t :which-key "open")
   "of" 'make-frame
   "oa" 'org-agenda
-  "ox" 'scratch-buffer
+  "ox" 'lhy/scratch-buf
   "oT" 'vterm-toggle-cd
   "ot" 'vterm-toggle
 
@@ -318,17 +291,20 @@
   "nb" 'consult-org-roam-backlinks
   "nd" 'org-roam-dailies-find-date
   "nt" 'org-todo-list
+  "ni" 'org-roam-node-insert
   "nl" 'consult-org-roam-forward-links
-  "ns" 'consult-org-roam-search
+  "n/" 'consult-org-roam-search
   "nr" 'org-roam-buffer-toggle
   "nf" 'org-roam-node-find
 
   "s" '(:ignore t :which-key "search")
   "sf" 'consult-find-under-here
   "sF" 'consult-find-other
+  "si" 'consult-imenu
   "sd" 'consult-ripgrep-under-here
   "sD" 'consult-ripgrep-other
   "st" 'osx-dictionary-search-word-at-point
+  "so" 'consult-outline
   "ss" 'consult-line)
 
 ;; some habits binding
@@ -339,10 +315,6 @@
   "[e" 'flymake-goto-prev-error
   "]e" 'flymake-goto-next-error)
 
-;; add shortcuts to windows
-(general-define-key
- :keymaps 'evil-window-map
- "m" 'maximize-window)
 ;; --------------- key binding end ---------------
 
 ;; read pdfs in emacs
@@ -383,10 +355,7 @@
   (setq vertico-cycle t)
   :init (vertico-mode))
 
-;; move minibuffer to center for better focus
-(use-package vertico-posframe
-  :after vertico
-  :init (vertico-posframe-mode))
+;; -------- yasnippets -------
 
 ;; completion in buffer
 ;; I prefer tab an go more
@@ -398,7 +367,7 @@
   (corfu-quit-no-match 'separator)
   (corfu-popupinfo-delay '(0.5 . 0.3))
   (corfu-auto-delay 0.1)
-  (corfu-preselect 'first)
+  (corfu-preselect 'prompt)
   :bind (:map corfu-map
               ("TAB" . corfu-next)
               ([tab] . corfu-next)
@@ -414,15 +383,6 @@
 (use-package cape
   :after corfu
   :config
-  (defun my/eglot-capf ()
-    (setq-local completion-at-point-functions
-                (list (cape-super-capf
-                       #'eglot-completion-at-point
-                       #'tempel-complete
-                       #'cape-file
-                       #'cape-dabbrev))))
-  (add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
-
   ;; (add-to-list 'completion-at-point-functions #'cape-tex)
   ;; (add-to-list 'completion-at-point-functions #'cape-sgml)
   ;; (add-to-list 'completion-at-point-functions #'cape-rfc1345)
@@ -436,14 +396,6 @@
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'tempel-complete))
-
-;; add icon to `corfu'
-(use-package kind-icon
-  :after corfu
-  :custom
-  (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
-  :config
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 ;; orderless match
 (use-package orderless
@@ -504,10 +456,6 @@
   :init
   (setq prefix-help-command #'embark-prefix-help-command)
   :config
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none))))
   (defun embark-which-key-indicator ()
     (lambda (&optional keymap targets prefix)
       (if (null keymap)
@@ -580,33 +528,13 @@
   ([remap describe-function] . helpful-callable)
   ([remap describe-command] . helpful-command)
   ([remap describe-variable] . helpful-variable)
-  ([remap describe-key] . helpful-key)
-  :config
-  (add-to-list 'display-buffer-alist
-               '((lambda (buffer-or-name _)
-                   (let ((buffer (get-buffer buffer-or-name)))
-                     (with-current-buffer buffer
-                       (or (equal major-mode 'helpful-mode)))))
-                 (display-buffer-reuse-window display-buffer-in-side-window)
-                 (side . bottom)
-                 (reusable-frames . visible)
-                 (window-height . 0.3))))
+  ([remap describe-key] . helpful-key))
 
 ;; real terminal
 (use-package vterm
   :defer t
   :config
   (setq vterm-toggle-fullscreen-p nil)
-  (add-to-list 'display-buffer-alist
-               '((lambda (buffer-or-name _)
-                   (let ((buffer (get-buffer buffer-or-name)))
-                     (with-current-buffer buffer
-                       (or (equal major-mode 'vterm-mode)
-                           (string-prefix-p vterm-buffer-name (buffer-name buffer))))))
-                 (display-buffer-reuse-window display-buffer-in-side-window)
-                 (side . bottom)
-                 (reusable-frames . visible)
-                 (window-height . 0.3)))
   (add-hook 'vterm-mode-hook (lambda () (display-line-numbers-mode -1)))
   (setq vterm-tramp-shells
         '(("docker" "/bin/sh")
@@ -615,6 +543,8 @@
 
 ;; better manage `vterm'
 (use-package vterm-toggle
+  :custom
+  (vterm-toggle-scope 'project)
   :after vterm)
 
 (use-package hide-mode-line
@@ -629,11 +559,6 @@
   (setq olivetti-style 'fancy)
   (setq olivetti-minimum-body-width 50))
 
-;; and icons
-(use-package all-the-icons
-  :defer t
-  :if (display-graphic-p))
-
 ;; notice where you are in `python'
 (use-package highlight-indent-guides
   :defer t
@@ -641,9 +566,7 @@
   (highlight-indent-guides-auto-set-faces)
   :init
   (setq highlight-indent-guides-method 'character
-        highlight-indent-guides-responsive 'top
-        highlight-indent-guides-auto-top-character-face-perc  99
-        )
+        highlight-indent-guides-responsive 'top)
   :hook (prog-mode . highlight-indent-guides-mode))
 
 
@@ -655,7 +578,8 @@
 
 ;; show #ff3256 in color
 (use-package rainbow-mode
-  :defer t)
+  :defer t
+  :hook (prog-mode . rainbow-mode))
 
 ;; show embbeded parens in color
 (use-package rainbow-delimiters
@@ -676,7 +600,7 @@
   (pyim-basedict-enable))
 
 (use-package pyim
-  :commands (toggle-input-method pyim-convert-string-at-pint)
+  :after orderless
   :init
   (setq default-input-method "pyim")
   :bind
@@ -691,6 +615,7 @@
                   pyim-probe-program-mode
                   pyim-probe-org-structure-template))
   )
+
 ;; get shell VARIABLE in emacs
 (use-package exec-path-from-shell
   :after evil
@@ -705,17 +630,37 @@
   :ensure nil)
 
 ;; LSP!!!!
-(use-package eglot
-  :defer t
-  :ensure nil
-  :hook (prog-mode . eglot-ensure)
+(use-package lsp-mode
+  :commands lsp
+  :custom
+  (lsp-completion-provider :none)
+  (read-process-output-max (* 4 1024 1024))
+  :init
+  (defun  my/lsp-mode-setup-completion ()
+    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+          '(orderless)))
+  :hook
+  ((rust-mode verilog-mode c++-mode) . lsp)
+  (lsp-completion-mode . my/lsp-mode-setup-completion)
   :config
-  (setq read-process-output-max (* 1024 1024))
-  (add-to-list 'eglot-server-programs '(verilog-mode . ("verible-verilog-ls"))))
+  (general-nvmap lsp-mode-map
+    :keymaps 'override
+    "K" 'lsp-describe-thing-at-point
+    "gd" 'lsp-find-definition
+    "gr" 'lsp-find-references
+    "gi" 'lsp-find-implementation)
+  (add-to-list 'lsp-language-id-configuration '(verilog-mode . "verilog"))
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection '("verible-verilog-ls" "--rules_config_search"))
+                    :major-modes '(verilog-mode)
+                    :server-id 'verible-ls)))
 
-;; enhance `eglot'
-(use-package consult-eglot
-  :after eglot)
+(use-package consult-lsp
+  :defer t)
+
+;; (use-package lsp-ui
+;;   :after lsp-mode
+;;   :commands lsp-ui-mode)
 
 ;; `verilog-mode'
 (use-package verilog-mode
@@ -776,10 +721,10 @@ tasks."
      (lambda (type)
        (eq type 'todo))
      (org-element-map                         ; (2)
-         (org-element-parse-buffer 'headline) ; (1)
-         'headline
-       (lambda (h)
-         (org-element-property :todo-type h)))))
+      (org-element-parse-buffer 'headline) ; (1)
+      'headline
+      (lambda (h)
+        (org-element-property :todo-type h)))))
   (defun vulpea-project-update-tag ()
     "Update PROJECT tag in the current buffer."
     (when (and (not (active-minibuffer-window))
@@ -855,19 +800,19 @@ If filetags value is already set, replace it."
 If the property is already set, replace its value."
     (setq name (downcase name))
     (org-with-point-at 1
-      (let ((case-fold-search t))
-        (if (re-search-forward (concat "^#\\+" name ":\\(.*\\)")
-                               (point-max) t)
-            (replace-match (concat "#+" name ": " value) 'fixedcase)
-          (while (and (not (eobp))
-                      (looking-at "^[#:]"))
-            (if (save-excursion (end-of-line) (eobp))
-                (progn
-                  (end-of-line)
-                  (insert "\n"))
-              (forward-line)
-              (beginning-of-line)))
-          (insert "#+" name ": " value "\n")))))
+                       (let ((case-fold-search t))
+                         (if (re-search-forward (concat "^#\\+" name ":\\(.*\\)")
+                                                (point-max) t)
+                             (replace-match (concat "#+" name ": " value) 'fixedcase)
+                           (while (and (not (eobp))
+                                       (looking-at "^[#:]"))
+                             (if (save-excursion (end-of-line) (eobp))
+                                 (progn
+                                   (end-of-line)
+                                   (insert "\n"))
+                               (forward-line)
+                               (beginning-of-line)))
+                           (insert "#+" name ": " value "\n")))))
   (defun vulpea-buffer-prop-set-list (name values &optional separators)
     "Set a file property called NAME to VALUES in current buffer.
 VALUES are quoted and combined into single string using
@@ -883,11 +828,11 @@ If the property is already set, replace its value."
   (defun vulpea-buffer-prop-get (name)
     "Get a buffer property called NAME as a string."
     (org-with-point-at 1
-      (when (re-search-forward (concat "^#\\+" name ": \\(.*\\)")
-                               (point-max) t)
-        (buffer-substring-no-properties
-         (match-beginning 1)
-         (match-end 1)))))
+                       (when (re-search-forward (concat "^#\\+" name ": \\(.*\\)")
+                                                (point-max) t)
+                         (buffer-substring-no-properties
+                          (match-beginning 1)
+                          (match-end 1)))))
 
   (defun vulpea-buffer-prop-get-list (name &optional separators)
     "Get a buffer property NAME as a list using SEPARATORS.
@@ -902,9 +847,9 @@ If nil it defaults to `split-string-default-separators', normally
   (defun vulpea-buffer-prop-remove (name)
     "Remove a buffer property called NAME."
     (org-with-point-at 1
-      (when (re-search-forward (concat "\\(^#\\+" name ":.*\n?\\)")
-                               (point-max) t)
-        (replace-match ""))))
+                       (when (re-search-forward (concat "\\(^#\\+" name ":.*\n?\\)")
+                                                (point-max) t)
+                         (replace-match ""))))
 
   (with-no-warnings
     (custom-declare-face '+org-todo-active  '((t (:inherit (bold font-lock-constant-face org-todo)))) "")
@@ -916,11 +861,12 @@ If nil it defaults to `split-string-default-separators', normally
         org-log-done 'time
         org-fontify-done-headline t
         org-startup-with-inline-images t
-        org-display-remote-inline-images 'cache
+        org-link-keep-stored-after-insertion t
         org-startup-indented t
         org-cycle-include-plain-lists 'integrate
         org-fontify-quote-and-verse-blocks t
         org-fontify-whole-heading-line t
+        org-image-actual-width nil
         org-hide-leading-stars t
         org-eldoc-breadcrumb-separator " → "
         org-indirect-buffer-display 'current-window
@@ -961,6 +907,18 @@ If nil it defaults to `split-string-default-separators', normally
   (setq org-confirm-babel-evaluate nil
         org-babel-python-command "python3"))
 
+(use-package org-download
+  :after org
+  :config
+  (setq-default org-download-method 'directory
+                org-download-image-dir  (concat (file-name-as-directory org-directory) "images")
+                org-download-image-org-width 800
+                org-download-image-html-width 800
+                org-download-image-latex-width 800))
+
+(use-package org-contrib
+  :defer t)
+
 ;; knowledge network
 (use-package org-roam
   :after org
@@ -975,12 +933,12 @@ If nil it defaults to `split-string-default-separators', normally
 ;; align chinese and english
 (use-package valign
   :after org
-  :hook org-mode)
+  :hook (org-mode . valign-mode))
 
 ;; `org' and `evil'
 (use-package evil-org
   :after org
-  :hook (org-mode org-agenda-mode)
+  :hook (org-mode . evil-org-mode)
   :general
   (general-mmap org-mode-map
     "RET" 'evil-org-return)
@@ -998,84 +956,11 @@ If nil it defaults to `split-string-default-separators', normally
   (consult-org-roam-buffer-after-buffers t)
   :config
   ;; org roam buffer
-  (add-to-list 'display-buffer-alist
-               '("\\*org-roam\\*"
-                 (display-buffer-in-side-window)
-                 (side . right)
-                 (slot . 0)
-                 (window-width . 0.33)
-                 (window-parameter . ((no-other-window . t)
-                                      (no-delete-other-windows . t)))))
   (consult-org-roam-mode 1)
   (org-roam-db-autosync-mode)
   (consult-customize
    consult-org-roam-forward-links
    :preview-key (kbd "C-SPC")))
-
-;; `org-mode' local leader bind
-(hy-local-leader-def
-  :states '(normal visual)
-  :keymaps 'org-mode-map
-  ;; "x" 'org-toggle-checkbox ; use C-c C-c instead
-  "l" 'org-insert-link
-  "p" 'org-set-property
-  "s" 'org-store-link
-  "h" 'consult-org-heading
-  "n" 'org-toggle-narrow-to-subtree
-  "t" 'org-todo)
-
-;; `dired' help me manage file
-(use-package dired
-  :defer t
-  :ensure nil
-  :init
-  (setq-default dired-dwim-target t
-                dired-omit-files "^\\.DS_Store"))
-
-;; enhance dired
-(use-package diredfl
-  :after dired
-  :hook (dired-mode . dired-omit-mode)
-  :init
-  (diredfl-global-mode)
-  (require 'dired-x)
-  )
-
-;; OSC specifically
-(use-package emacs
-  :config
-  (setq mac-command-modifier 'meta
-        mac-option-modifier 'super))
-
-;; Tramp to my server
-(use-package tramp
-  :defer t
-  :init
-  :config
-  (setenv "SHELL" "/bin/bash")
-  (setq tramp-default-remote-shell "/bin/zsh")
-  (customize-set-value 'tramp-encoding-shell "/bin/zsh")
-  (add-to-list 'tramp-connection-properties
-               (list ".*" "locale" "LC_ALL=C"))
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
-
-;; For better treesit experience
-;; NOTE the `origin' mode, eg: `python-mode'
-;; And the `python-ts-mode' have different hooks!!!
-;; which sometimes needs careful handle. And wait
-;; for a better solution
-;; Or maybe just disbale follows and emmm
-(use-package treesit-auto
-  :demand t
-  :config
-  (setq treesit-auto-install 'prompt)
-  (global-treesit-auto-mode))
-
-(use-package plantuml-mode
-  :defer t
-  :config
-  (setq plantuml-default-exec-mode 'jar
-        plantuml-jar-path "~/.config/emacs/.cache/plantuml.jar"))
 
 ;; enable plantuml code and default behavior to a tmp file
 ;; if a `:file' is given. Then generate the file
@@ -1152,26 +1037,80 @@ This function is called by `org-babel-execute-src-block'."
   (add-to-list 'org-babel-default-header-args:plantuml
                '(:cmdline . "-charset utf-8")))
 
+(use-package org-superstar
+  :after org
+  :hook
+  (org-mode . org-superstar-mode)
+  :config
+  (setq org-superstar-loading-bullet ?\s
+        ortg-superstar-leading-fallback ?\s))
+
+;; `org-mode' local leader bind
+(hy-local-leader-def
+  :states '(normal visual)
+  :keymaps 'org-mode-map
+  ;; "x" 'org-toggle-checkbox ; use C-c C-c instead
+  "l" 'org-insert-link
+  "p" 'org-set-property
+  "s" 'org-store-link
+  "h" 'consult-org-heading
+  "n" 'org-toggle-narrow-to-subtree
+  "t" 'org-todo)
+
+;; --------------- dired begin --------------------
+;; `dired' help me manage file
+(use-package dired
+  :defer t
+  :ensure nil
+  :init
+  (setq-default dired-dwim-target t
+                dired-omit-files "^\\.DS_Store"))
+
+;; enhance dired
+(use-package diredfl
+  :after dired
+  :hook (dired-mode . dired-omit-mode)
+  :init
+  (diredfl-global-mode)
+  (require 'dired-x)
+  )
+;; --------------- dired  end  --------------------
+
+;; OSC specifically
+(use-package emacs
+  :config
+  (setq mac-pass-command-to-system nil
+        mac-pass-control-to-system nil
+        mac-command-modifier 'meta
+        mac-option-modifier 'super))
+
+;; Tramp to my server
+(use-package tramp
+  :defer t
+  :init
+  :config
+  (setenv "SHELL" "/bin/bash")
+  (setq tramp-default-remote-shell "/bin/zsh")
+  (customize-set-value 'tramp-encoding-shell "/bin/zsh")
+  (add-to-list 'tramp-connection-properties
+               (list ".*" "locale" "LC_ALL=C"))
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
+
+(use-package plantuml-mode
+  :defer t
+  :config
+  (setq plantuml-default-exec-mode 'jar
+        plantuml-jar-path "~/.config/emacs/.cache/plantuml.jar"))
+
 
 (use-package persistent-scratch
   :config (persistent-scratch-autosave-mode))
 
-(use-package org-download
-  :after org)
-
 (use-package osx-dictionary
   :defer t
-  :if (memq window-system '(mac ns))
-  :config
-  (add-to-list 'display-buffer-alist
-               '("\\*osx-dictionary\\*"
-                 (display-buffer-in-side-window)
-                 (side . bottom)
-                 (slot . 0)
-                 (window-width . 0.33)
-                 (window-parameter . ((no-other-window . t)
-                                      (no-delete-other-windows . t))))))
+  :if (memq window-system '(mac ns)))
 
+;; ----------------- UI begin --------------------------
 (use-package doom-themes
   :after doom-modeline
   :config
@@ -1182,19 +1121,66 @@ This function is called by `org-babel-execute-src-block'."
   :hook (after-init . doom-modeline-mode)
   :init (column-number-mode))
 
-(use-package org-superstar
-  :after org
-  :hook
-  (org-mode . org-superstar-mode)
+;; add icon to `corfu'
+(use-package kind-icon
+  :after (corfu nerd-icons)
   :config
-  (setq org-superstar-loading-bullet ?\s
-        ortg-superstar-leading-fallback ?\s))
+  (setq kind-icon-use-icons nil)
+  (setq kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+
+(use-package nerd-icons
+  :defer t)
+
+(use-package nerd-icons-dired
+  :hook (dired-mode . nerd-icons-dired-mode)
+  :after dired)
+
+(use-package nerd-icons-completion
+  :after nerd-icons
+  :config (nerd-icons-completion-mode))
+;; ----------------- UI begin --------------------------
 
 (use-package browse-at-remote
   :defer t)
 
-(use-package org-contrib
-  :defer t)
+;; ----------------- windows management begin ---------------------
+(use-package emacs
+  :config
+  ;; bottom
+  (add-to-list 'display-buffer-alist
+               '("\*scratch\*" display-buffer-at-bottom
+                 (window-height . 0.3)))
+  ;; bottom side window
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-or-name _)
+                   (let ((buffer (get-buffer buffer-or-name)))
+                     (with-current-buffer buffer
+                       (or (equal major-mode 'helpful-mode)
+                           (string-prefix-p "\*vterm\*" (buffer-name buffer))
+                           (string-prefix-p "\*lsp-help\*" (buffer-name buffer))
+                           (string-prefix-p "\*osx-dictionary\*" (buffer-name buffer))))))
+                 (display-buffer-reuse-window display-buffer-in-side-window)
+                 (side . bottom)
+                 (reusable-frames . visible)
+                 (window-height . 0.33)))
+  ;; right
+  ;; right  side window
+  (add-to-list 'display-buffer-alist
+               '("\*org-roam\*"
+                 (display-buffer-in-side-window)
+                 (side . right)
+                 (slot . 0)
+                 (window-width . 0.33)
+                 (window-parameter . ((no-other-window . t)
+                                      (no-delete-other-windows . t))))))
+;; ----------------- windows management  end  ---------------------
+
+;; --------------- some defined function -------------------
+(defun lhy/scratch-buf ()
+  (interactive)
+  (pop-to-buffer "\*scratch\*"))
+;; --------------- some defined function -------------------
 
 (provide 'init)
 
