@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: dump fsdb
+# key: fsdb
+# --
+initial begin
+  $fsdbDumpfile("${1:top_tb.fsdb}");
+  $fsdbDumpvars;
+end$0

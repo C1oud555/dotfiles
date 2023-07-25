@@ -19,9 +19,8 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (setq package-enable-at-startup nil)
 (package-initialize)
-(unless (package-installed-p 'use-package) ; ensure `use-packge' is installed
-  (package-refresh-contents)
-  (package-install 'use-package))
+(when (not package-archive-contents)
+  (package-refresh-contents))
 
 ;; `benchmark' for opt
 (use-package benchmark-init
@@ -36,6 +35,7 @@
 
 ;; better defaults
 (use-package emacs
+  :hook ((text-mode prog-mode) . display-line-numbers-mode)
   :init
   (setq user-full-name "hyluo"
         user-mail-address "hyluo.1999@qq.com"
@@ -45,9 +45,10 @@
         auto-save-default nil
         frame-resize-pixelwise t
         create-lockfiles nil
+        help-window-select t
+        compilation-scroll-output t
         confirm-kill-emacs  'y-or-n-p)
   (setq-default indent-tabs-mode nil)
-  (set-charset-priority 'unicode)
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
   ;; diff sets
@@ -56,8 +57,7 @@
         ediff-merge-split-window-function 'split-window-horizontally)
   (visual-line-mode)
   (global-hl-line-mode)
-  (global-display-line-numbers-mode t)
-  ;; (pixel-scroll-precision-mode)
+  (pixel-scroll-precision-mode)
   (setq-default vc-handled-backends '(Git))
   (defalias 'yes-or-no-p 'y-or-n-p)
   (set-face-attribute 'default nil :family "SF Mono" :height 160)
@@ -89,6 +89,20 @@
   :defer t
   :ensure nil
   :hook (after-init . global-auto-revert-mode))
+
+;; eldoc: Show doc in echo area
+(use-package eldoc
+  :defer t
+  :ensure nil
+  :diminish
+  :config
+  (setq eldoc-idle-delay 0.4 ;; show faster
+        eldoc-echo-area-use-multiline-p 3 ;; only three lines
+        eldoc-echo-area-display-truncation-message nil)
+  ;; Dispaly `*eldoc*' buffer at the bottom
+  (add-to-list 'display-buffer-alist
+               '("^\\*eldoc*" display-buffer-at-bottom
+                 (window-height . 0.3))))
 
 ;; highlight parens
 (use-package paren
@@ -234,22 +248,22 @@
   "bk" 'kill-current-buffer
 
   "c" '(:ignore t :which-key "code")
-  "ca" 'lsp-execute-code-action
-  "cx" 'consult-lsp-diagnostics
-  "cf" 'lsp-format-buffer
-  "cl" 'lsp-avy-lens
-  "cr" 'lsp-rename
-  "cs" 'consult-lsp-file-symbols
-  "cS" 'consult-lsp-symbols
+  "ca" 'eglot-code-actions
+  "cx" 'consult-flymake
+  "cf" 'eglot-format
+  "cr" 'eglot-rename
+  "cj" 'consult-eglot-symbols
 
   "e" '(:ignore t :which-key "eval")
   "eb" 'eval-buffer
   "er" 'eval-region
 
   "f" '(:ignore t :which-key "file")
+  "fc" 'copy-file
   "fs" 'save-buffer
   "fl" 'consult-locate
   "fr" 'consult-recent-file
+  "fR" 'rename-visited-file
   "ff" 'find-file
   "fd" 'dired
 
@@ -266,13 +280,14 @@
   "hk" 'describe-key
 
   "i" '(:ignore t :which-key "insert")
-  "it" 'tempel-insert
   "iy" 'consult-yank-from-kill-ring
+  "iy" 'org-download-clipboard
+  "is" 'yas-insert-snippet
 
   "o" '(:ignore t :which-key "open")
   "of" 'make-frame
   "oa" 'org-agenda
-  "ox" 'lhy/scratch-buf
+  "ox" 'scratch-buffer
   "oT" 'vterm-toggle-cd
   "ot" 'vterm-toggle
 
@@ -285,6 +300,8 @@
 
   "q" '(:ignore t :which-key "quit")
   "qf" 'delete-frame
+  "qr" 'restart-emacs
+  "qk" 'kill-emacs
   "qq" 'save-buffers-kill-terminal
 
   "n" '(:ignore t :which-key "note")
@@ -319,7 +336,12 @@
 
 ;; read pdfs in emacs
 (use-package pdf-tools
-  :defer t)
+  :magic ("%PDF" . pdf-view-mode)
+  :config
+  (pdf-loader-install)
+  (setq pdf-view-use-scaling nil
+        pdf-sync-backward-display-action t
+        pdf-sync-forward-display-action t))
 
 ;; use `git' in emacs
 (use-package magit
@@ -356,32 +378,107 @@
   :init (vertico-mode))
 
 ;; -------- yasnippets -------
+(use-package yasnippet
+  :after corfu
+  :general
+  (yas-minor-mode-map
+   :states 'insert
+   "C-TAB" 'yas-expand)
+  :hook ((prog-mode org-mode vterm-mode) . yas-minor-mode)
+  :config
+  (yas-reload-all))
 
 ;; completion in buffer
 ;; I prefer tab an go more
 (use-package corfu
-  :defer t
+  :after nerd-icons
   :custom
   (corfu-cycle t)
   (corfu-auto t)
   (corfu-quit-no-match 'separator)
   (corfu-popupinfo-delay '(0.5 . 0.3))
-  (corfu-auto-delay 0.1)
-  (corfu-preselect 'prompt)
-  :bind (:map corfu-map
-              ("TAB" . corfu-next)
-              ([tab] . corfu-next)
-              ("S-TAB" . corfu-previous)
-              ([backtab] . corfu-previous)
-              ("C-SPC" . corfu-insert-separator))
+  :bind (:map corfu-map ("<escape>" . corfu-quit))
   :init
   (global-corfu-mode)
   (corfu-popupinfo-mode)
-  (corfu-history-mode))
+  (corfu-history-mode)
+  :config
+  (defconst corfu-kind-icon-mapping
+    `(
+      (array . ,(nerd-icons-codicon "nf-cod-symbol_array" :face 'font-lock-type-face))
+      (boolean . ,(nerd-icons-codicon "nf-cod-symbol_boolean" :face 'font-lock-builtin-face))
+      (class . ,(nerd-icons-codicon "nf-cod-symbol_class" :face 'font-lock-type-face))
+      (color . ,(nerd-icons-codicon "nf-cod-symbol_color" :face 'success) )
+      (command . ,(nerd-icons-codicon "nf-cod-terminal" :face 'default) )
+      (constant . ,(nerd-icons-codicon "nf-cod-symbol_constant" :face 'font-lock-constant-face) )
+      (constructor . ,(nerd-icons-codicon "nf-cod-triangle_right" :face 'font-lock-function-name-face) )
+      (enummember . ,(nerd-icons-codicon "nf-cod-symbol_enum_member" :face 'font-lock-builtin-face) )
+      (enum-member . ,(nerd-icons-codicon "nf-cod-symbol_enum_member" :face 'font-lock-builtin-face) )
+      (enum . ,(nerd-icons-codicon "nf-cod-symbol_enum" :face 'font-lock-builtin-face) )
+      (event . ,(nerd-icons-codicon "nf-cod-symbol_event" :face 'font-lock-warning-face) )
+      (field . ,(nerd-icons-codicon "nf-cod-symbol_field" :face 'font-lock-variable-name-face) )
+      (file . ,(nerd-icons-codicon "nf-cod-symbol_file" :face 'font-lock-string-face) )
+      (folder . ,(nerd-icons-codicon "nf-cod-folder" :face 'font-lock-doc-face) )
+      (interface . ,(nerd-icons-codicon "nf-cod-symbol_interface" :face 'font-lock-type-face) )
+      (keyword . ,(nerd-icons-codicon "nf-cod-symbol_keyword" :face 'font-lock-keyword-face) )
+      (macro . ,(nerd-icons-codicon "nf-cod-symbol_misc" :face 'font-lock-keyword-face) )
+      (magic . ,(nerd-icons-codicon "nf-cod-wand" :face 'font-lock-builtin-face) )
+      (method . ,(nerd-icons-codicon "nf-cod-symbol_method" :face 'font-lock-function-name-face) )
+      (function . ,(nerd-icons-codicon "nf-cod-symbol_method" :face 'font-lock-function-name-face) )
+      (module . ,(nerd-icons-codicon "nf-cod-file_submodule" :face 'font-lock-preprocessor-face) )
+      (numeric . ,(nerd-icons-codicon "nf-cod-symbol_numeric" :face 'font-lock-builtin-face) )
+      (operator . ,(nerd-icons-codicon "nf-cod-symbol_operator" :face 'font-lock-comment-delimiter-face) )
+      (param . ,(nerd-icons-codicon "nf-cod-symbol_parameter" :face 'default) )
+      (property . ,(nerd-icons-codicon "nf-cod-symbol_property" :face 'font-lock-variable-name-face) )
+      (reference . ,(nerd-icons-codicon "nf-cod-references" :face 'font-lock-variable-name-face) )
+      (snippet . ,(nerd-icons-codicon "nf-cod-symbol_snippet" :face 'font-lock-string-face) )
+      (string . ,(nerd-icons-codicon "nf-cod-symbol_string" :face 'font-lock-string-face) )
+      (struct . ,(nerd-icons-codicon "nf-cod-symbol_structure" :face 'font-lock-variable-name-face) )
+      (text . ,(nerd-icons-codicon "nf-cod-text_size" :face 'font-lock-doc-face) )
+      (typeparameter . ,(nerd-icons-codicon "nf-cod-list_unordered" :face 'font-lock-type-face) )
+      (type-parameter . ,(nerd-icons-codicon "nf-cod-list_unordered" :face 'font-lock-type-face) )
+      (unit . ,(nerd-icons-codicon "nf-cod-symbol_ruler" :face 'font-lock-constant-face) )
+      (value . ,(nerd-icons-codicon "nf-cod-symbol_field" :face 'font-lock-builtin-face) )
+      (variable . ,(nerd-icons-codicon "nf-cod-symbol_variable" :face 'font-lock-variable-name-face) )
+      (t . ,(nerd-icons-codicon "nf-cod-code" :face 'font-lock-warning-face))))
+  (defsubst nerd-icon--metadata-get (metadata type-name)
+    "Get METADATA for keyword TYPE-NAME from the completion properties."
+    (or
+     (plist-get completion-extra-properties (intern (format ":%s" type-name)))
+     (cdr (assq (intern type-name) metadata))))
+  (defsubst nerd-icon-formatted (kind)
+    "Get icon for KIND."
+    (let* ((icon (alist-get kind corfu-kind-icon-mapping))
+            (icon-face (get-text-property 0 'face icon))
+            (icon-bg (plist-get icon-face :inherit))
+            (icon-pad (propertize " " 'face (append '(:height 0.5) icon-bg)))
+            (item-pad (propertize " " 'face '(:height 0.5))))
+         (concat icon-pad icon item-pad)))
+  (defun nerd-icon-margin-formatter (metadata)
+    "Return a margin-formatter function which produces kind icons.
+METADATA is the completion metadata supplied by the caller (see
+info node `(elisp)Programmed Completion').  To use, add this
+function to the relevant margin-formatters list."
+    (if-let ((kind-func (nerd-icon--metadata-get metadata "company-kind")))
+        (lambda (cand)
+          (if-let ((kind (funcall kind-func cand)))
+              (nerd-icon-formatted kind)
+            (nerd-icon-formatted t)))))
+  (add-to-list 'corfu-margin-formatters #'nerd-icon-margin-formatter)
+  )
+
 
 ;; more complete backends
 (use-package cape
   :after corfu
+  :config
+  (defun my/eglot-capf ()
+    (setq-local completion-at-point-functions
+                (list (cape-super-capf
+                       #'eglot-completion-at-point
+                       #'cape-file
+                       #'cape-dabbrev))))
+  (add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
   :config
   ;; (add-to-list 'completion-at-point-functions #'cape-tex)
   ;; (add-to-list 'completion-at-point-functions #'cape-sgml)
@@ -394,8 +491,7 @@
   (add-to-list 'completion-at-point-functions #'cape-symbol)
   (add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'tempel-complete))
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev))
 
 ;; orderless match
 (use-package orderless
@@ -501,19 +597,6 @@
   :after vertico
   :init (marginalia-mode))
 
-;; snippet engine
-(use-package tempel
-  :after corfu
-  :bind (:map tempel-map
-              ("TAB" . tempel-next)
-              ([tab] . tempel-next)
-              ("S-TAB" . tempel-previous)
-              ([backtab] . tempel-previous)))
-
-;; more snippets
-(use-package tempel-collection
-  :after tempel)
-
 ;; help you format keybind
 (use-package which-key
   :after evil
@@ -535,21 +618,15 @@
   :defer t
   :config
   (setq vterm-toggle-fullscreen-p nil)
-  (add-hook 'vterm-mode-hook (lambda () (display-line-numbers-mode -1)))
   (setq vterm-tramp-shells
-        '(("docker" "/bin/sh")
-          ("sshx" "/bin/zsh")
-          ("ssh" "/bin/zsh"))))
+        '(("sshx" "/bin/bash")))
+  )
 
 ;; better manage `vterm'
 (use-package vterm-toggle
   :custom
   (vterm-toggle-scope 'project)
   :after vterm)
-
-(use-package hide-mode-line
-  :hook ((osx-dictionary-mode org-roam-mode helpful-mode vterm-mode) . hide-mode-line-mode)
-  :defer t)
 
 ;; focus!
 (use-package olivetti
@@ -599,6 +676,8 @@
   :config
   (pyim-basedict-enable))
 
+(use-package posframe)
+
 (use-package pyim
   :after orderless
   :init
@@ -613,16 +692,14 @@
                 '(pyim-probe-dynamic-english
                   pyim-probe-isearch-mode
                   pyim-probe-program-mode
-                  pyim-probe-org-structure-template))
+                  pyim-probe-org-structure-template)
+                pyim-punctuation-half-width-functions
+                '(pyim-probe-punctuation-line-beginning
+                  pyim-probe-punctuation-after-punctuation))
   )
 
 ;; get shell VARIABLE in emacs
-(use-package exec-path-from-shell
-  :after evil
-  :if (memq window-system '(mac ns))
-  :config
-  (exec-path-from-shell-initialize)
-  (exec-path-from-shell-copy-env "JAVA_HOME"))
+;; TODO always run emacs from shell
 
 ;; manage a real project
 (use-package project
@@ -630,37 +707,22 @@
   :ensure nil)
 
 ;; LSP!!!!
-(use-package lsp-mode
-  :commands lsp
-  :custom
-  (lsp-completion-provider :none)
-  (read-process-output-max (* 4 1024 1024))
-  :init
-  (defun  my/lsp-mode-setup-completion ()
-    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-          '(orderless)))
-  :hook
-  ((rust-mode verilog-mode c++-mode) . lsp)
-  (lsp-completion-mode . my/lsp-mode-setup-completion)
+(use-package markdown-mode
+  ;; For doc
+  :after eglot)
+(use-package eglot
+  :defer t
+  :ensure nil
+  :hook ((scala-mode c-ts-mode c++-ts-mode rust-ts-mode verilog-mode python-ts-mode) . eglot-ensure)
   :config
-  (general-nvmap lsp-mode-map
-    :keymaps 'override
-    "K" 'lsp-describe-thing-at-point
-    "gd" 'lsp-find-definition
-    "gr" 'lsp-find-references
-    "gi" 'lsp-find-implementation)
-  (add-to-list 'lsp-language-id-configuration '(verilog-mode . "verilog"))
-  (lsp-register-client
-   (make-lsp-client :new-connection (lsp-stdio-connection '("verible-verilog-ls" "--rules_config_search"))
-                    :major-modes '(verilog-mode)
-                    :server-id 'verible-ls)))
+  (setq read-process-output-max (* 1024 1024))
+  (add-to-list 'eglot-server-programs
+               '((c-mode c-ts-mode c++-mode c++-ts-mode) . ("clangd" "-j=4" "--clang-tidy")))
+  (add-to-list 'eglot-server-programs '(verilog-mode . ("verible-verilog-ls"))))
 
-(use-package consult-lsp
-  :defer t)
-
-;; (use-package lsp-ui
-;;   :after lsp-mode
-;;   :commands lsp-ui-mode)
+;; enhance `eglot'
+(use-package consult-eglot
+  :after eglot)
 
 ;; `verilog-mode'
 (use-package verilog-mode
@@ -669,9 +731,6 @@
   (hy-local-leader-def
     :keymaps 'verilog-mode-map
     "i" verilog-template-map)
-  ;; little hack to let the verilog indent end at the line end
-  ;; so `tempel' snippet will hebave more fluent
-  (advice-add 'verilog-indent-line-relative :after (lambda (&rest r) (end-of-line)))
   (setq verilog-indent-level 2
         verilog-indent-level-module 2
         verilog-indent-level-declaration 2
@@ -682,20 +741,9 @@
         verilog-indent-lists t
         verilog-auto-newline nil))
 
-;; `rust'
-(use-package rust-mode
-  :defer t)
-
 ;; `scala'
 (use-package scala-mode
   :defer t)
-
-;; `python'
-(use-package poetry
-  :after python
-  :init
-  (poetry-tracking-mode) ; follow virtual env
-  )
 
 ;; local leader bind in python
 (hy-local-leader-def
@@ -867,9 +915,12 @@ If nil it defaults to `split-string-default-separators', normally
         org-fontify-quote-and-verse-blocks t
         org-fontify-whole-heading-line t
         org-image-actual-width nil
+        org-highlight-latex-and-related '(native script entities)
         org-hide-leading-stars t
+        org-preview-latex-default-process 'dvisvgm
         org-eldoc-breadcrumb-separator " → "
         org-indirect-buffer-display 'current-window
+        org-format-latex-options (plist-put org-format-latex-options :scale 1.75)
         org-todo-keywords
         '((sequence
            "TODO(t)"
@@ -903,6 +954,8 @@ If nil it defaults to `split-string-default-separators', normally
    'org-babel-load-languages
    '((python . t)
      (tcl . t)
+     (C . t)
+     (emacs-lisp . t)
      (plantuml . t)))
   (setq org-confirm-babel-evaluate nil
         org-babel-python-command "python3"))
@@ -1064,6 +1117,7 @@ This function is called by `org-babel-execute-src-block'."
   :ensure nil
   :init
   (setq-default dired-dwim-target t
+                dired-kill-when-opening-new-dired-buffer t
                 dired-omit-files "^\\.DS_Store"))
 
 ;; enhance dired
@@ -1087,14 +1141,10 @@ This function is called by `org-babel-execute-src-block'."
 ;; Tramp to my server
 (use-package tramp
   :defer t
-  :init
   :config
-  (setenv "SHELL" "/bin/bash")
-  (setq tramp-default-remote-shell "/bin/zsh")
-  (customize-set-value 'tramp-encoding-shell "/bin/zsh")
-  (add-to-list 'tramp-connection-properties
-               (list ".*" "locale" "LC_ALL=C"))
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (setq tramp-default-method "sshx")
+  )
 
 (use-package plantuml-mode
   :defer t
@@ -1121,14 +1171,6 @@ This function is called by `org-babel-execute-src-block'."
   :hook (after-init . doom-modeline-mode)
   :init (column-number-mode))
 
-;; add icon to `corfu'
-(use-package kind-icon
-  :after (corfu nerd-icons)
-  :config
-  (setq kind-icon-use-icons nil)
-  (setq kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
-
 (use-package nerd-icons
   :defer t)
 
@@ -1145,27 +1187,45 @@ This function is called by `org-babel-execute-src-block'."
   :defer t)
 
 ;; ----------------- windows management begin ---------------------
+(use-package hide-mode-line
+  :hook ((osx-dictionary-mode org-roam-mode help-mode helpful-mode vterm-mode) . hide-mode-line-mode)
+  :defer t)
+
+;; This is rather complicated. So can not simply categorized as 4 kind.
 (use-package emacs
   :config
+  ;; need focus
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-or-name _)
+                   (let ((buffer (get-buffer buffer-or-name)))
+                     (with-current-buffer buffer
+                       (equal major-mode 'compilation-mode))))
+                 display-buffer-at-bottom
+                 (body-function . select-window)
+                 (window-height . 0.33)))
   ;; bottom
   (add-to-list 'display-buffer-alist
-               '("\*scratch\*" display-buffer-at-bottom
-                 (window-height . 0.3)))
-  ;; bottom side window
+               '((lambda (buffer-or-name _)
+                   (let ((buffer (get-buffer buffer-or-name)))
+                     (with-current-buffer buffer
+                       (or (string-prefix-p "\*scratch\*" (buffer-name buffer))
+                           (string-prefix-p "\*vterm\*" (buffer-name buffer))
+                           (string-prefix-p "\*osx-dictionary\*" (buffer-name buffer))))))
+                 display-buffer-at-bottom
+                 (window-height . 0.33)))
+  ;; bottom side window -- only one rule
   (add-to-list 'display-buffer-alist
                '((lambda (buffer-or-name _)
                    (let ((buffer (get-buffer buffer-or-name)))
                      (with-current-buffer buffer
                        (or (equal major-mode 'helpful-mode)
-                           (string-prefix-p "\*vterm\*" (buffer-name buffer))
-                           (string-prefix-p "\*lsp-help\*" (buffer-name buffer))
-                           (string-prefix-p "\*osx-dictionary\*" (buffer-name buffer))))))
+                           (equal major-mode 'help-mode)))))
                  (display-buffer-reuse-window display-buffer-in-side-window)
                  (side . bottom)
                  (reusable-frames . visible)
                  (window-height . 0.33)))
   ;; right
-  ;; right  side window
+  ;; right  side window -- only one rule
   (add-to-list 'display-buffer-alist
                '("\*org-roam\*"
                  (display-buffer-in-side-window)
@@ -1176,11 +1236,28 @@ This function is called by `org-babel-execute-src-block'."
                                       (no-delete-other-windows . t))))))
 ;; ----------------- windows management  end  ---------------------
 
-;; --------------- some defined function -------------------
-(defun lhy/scratch-buf ()
-  (interactive)
-  (pop-to-buffer "\*scratch\*"))
-;; --------------- some defined function -------------------
+(use-package auctex
+  :defer t
+  :config
+  (setq-default TeX-view-program-selection '((output-pdf "PDF Tools"))
+                TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
+                TeX-source-correlate-start-server t)
+  (add-to-list 'TeX-command-list '("XeLaTeX" "%`xelatex --synctex=1%(mode)%' %t" TeX-run-TeX nil t))
+  (add-hook 'TeX-after-compilation-finished-functions
+            #'TeX-revert-document-buffer)
+  )
+
+;; tree sitter remap
+(use-package emacs
+  :config
+  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode))
+  (setq major-mode-remap-alist
+        '((rust-mode . rust-ts-mode)
+          (c-mode . c-ts-mode)
+          (c++-mode . c++-ts-mode)
+          (cmake-mode . cmake-ts-mode)
+          (python-mode . python-ts-mode))))
 
 (provide 'init)
 
