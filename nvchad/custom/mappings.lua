@@ -18,7 +18,7 @@ M.disabled = {
 
 M.general = {
   n = {
-    [";"] = { ":", "enter command mode", opts = { nowait = true } },
+    -- [";"] = { ":", "enter command mode", opts = { nowait = true } },
     ["<leader>,"] = { "<cmd> Telescope buffers <CR>", "Find buffers" },
     ["<leader>:"] = { "<cmd> Telescope command_history <CR>", "Search Commands" },
     ["<leader>`"] = { "<cmd> bprevious <CR>", "Last buffer" },

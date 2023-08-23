@@ -11,7 +11,6 @@ local plugins = {
 
   {
     "williamboman/mason.nvim",
-    enabled = false,
   },
 
   {
@@ -25,14 +24,18 @@ local plugins = {
   },
 
   {
+    "nvim-telescope/telescope-ui-select.nvim",
+  },
+
+  {
     "nvim-tree/nvim-tree.lua",
     opts = overrides.nvimtree,
   },
 
-  -- {
-  --   "nvim-telescope/telescope-file-browser.nvim",
-  --   dependencies = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" },
-  -- },
+  {
+    "nvim-telescope/telescope-file-browser.nvim",
+    dependencies = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" },
+  },
 
   {
     "nvim-telescope/telescope-project.nvim",
@@ -104,7 +107,14 @@ local plugins = {
         dapui.close()
       end
     end,
-  }
+  },
+
+  {
+    "NeogitOrg/neogit",
+    dependencies = "nvim-lua/plenary.nvim",
+    event = "VeryLazy",
+    config = true
+  },
 }
 
 return plugins

@@ -22,6 +22,9 @@ M.nvimtree = {
   git = {
     enable = true,
   },
+  -- view = {
+  --   side = "right",
+  -- },
 
   sync_root_with_cwd = true,
 
@@ -37,7 +40,7 @@ M.nvimtree = {
 
 M.telescope = {
   extensions_list = {
-    "project", "fzf"
+    "project", "fzf", "ui-select", "file_browser"
   },
   extensions = {
     fzf = {
@@ -53,7 +56,10 @@ M.telescope = {
       search_by = "title",
       sync_with_nvim_tree = true,
     },
-    -- default for on_project_selected = find project files
+    ["ui-select"] = {
+      require("telescope.themes").get_dropdown {
+      }
+    }
   },
 }
 

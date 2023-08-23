@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: last_modified_time
-# key: lmt
-# --
-#+last_modified: `(format-time-string "[%Y-%02m-%02d %3a %02H:%02M]")`$0

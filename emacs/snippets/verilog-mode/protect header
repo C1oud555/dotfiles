@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# name: protect header
-# key: ndef
-# --
-\`ifndef ${1:`(upcase (replace-regexp-in-string "\\." "__" (file-name-nondirectory buffer-file-name)))`}
-\`define $1
-$0
-\`endif // $1
