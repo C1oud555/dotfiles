@@ -17,6 +17,13 @@ M.treesitter = {
   },
 }
 
+M.mason = {
+  ensure_installed = {
+    "lua-language-server",
+    "python-lsp-server"
+  }
+}
+
 -- git support in nvimtree
 M.nvimtree = {
   git = {
@@ -39,16 +46,13 @@ M.nvimtree = {
 }
 
 M.telescope = {
+  defaults = {
+    layout_strategy = "horizontal",
+  },
   extensions_list = {
-    "project", "fzf", "ui-select", "file_browser"
+    "project", "ui-select", "file_browser"
   },
   extensions = {
-    fzf = {
-      fuzzy = true,
-      override_generic_sorter = true,
-      override_file_sorter = true,
-      case_mode = "smart_case",
-    },
     project = {
       base_dirs = {},
       theme = "dropdown",

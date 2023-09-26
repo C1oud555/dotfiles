@@ -1,6 +1,7 @@
 local overrides = require("custom.configs.overrides")
 
 local plugins = {
+  ------------------------------------ overrides begin --------------------------------
   {
     "neovim/nvim-lspconfig",
     config = function()
@@ -10,7 +11,26 @@ local plugins = {
   },
 
   {
+    "windwp/nvim-autopairs",
+    opts = {
+      fast_wrap = {},
+      disable_filetype = { "TelescopePrompt", "vim" },
+    },
+    config = function(_, opts)
+      local apairs = require("nvim-autopairs")
+      apairs.setup(opts)
+      apairs.get_rules('`')[1].not_filetypes = { "verilog", "systemverilog" }
+      apairs.get_rules("'")[1].not_filetypes = { "verilog", "systemverilog" }
+
+      -- setup cmp for autopairs
+      local cmp_autopairs = require "nvim-autopairs.completion.cmp"
+      require("cmp").event:on("confirm_done", cmp_autopairs.on_confirm_done())
+    end,
+  },
+
+  {
     "williamboman/mason.nvim",
+    opts = overrides.mason,
   },
 
   {
@@ -24,13 +44,13 @@ local plugins = {
   },
 
   {
-    "nvim-telescope/telescope-ui-select.nvim",
-  },
-
-  {
     "nvim-tree/nvim-tree.lua",
     opts = overrides.nvimtree,
   },
+
+  ------------------------------------ overrides end --------------------------------
+
+  ------------------------------------ custom plugins end --------------------------------
 
   {
     "nvim-telescope/telescope-file-browser.nvim",
@@ -42,13 +62,22 @@ local plugins = {
   },
 
   {
+    "nvim-telescope/telescope-ui-select.nvim",
+  },
+
+  {
     "folke/flash.nvim",
     event = "VeryLazy",
-    opts = {},
+    opts = {
+      modes = {
+        char = {
+          enabled = false,
+        }
+      }
+    },
     keys = {
       { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end,       desc = "Flash" },
       { "S", mode = { "n", "o", "x" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
-      { "r", mode = "o",               function() require("flash").remote() end,     desc = "Remote Flash" },
       {
         "R",
         mode = { "o", "x" },
@@ -56,27 +85,7 @@ local plugins = {
         desc =
         "Treesitter Search"
       },
-      {
-        "<c-s>",
-        mode = { "c" },
-        function() require("flash").toggle() end,
-        desc =
-        "Toggle Flash Search"
-      },
     },
-  },
-
-  {
-    "nvim-neorg/neorg",
-    build = ":Neorg sync-parsers",
-    dependencies = { "nvim-lua/plenary.nvim" },
-    event = "VeryLazy",
-    opts = require("custom.configs.neorg"),
-  },
-
-  {
-    'nvim-telescope/telescope-fzf-native.nvim',
-    build = 'make'
   },
 
   {
@@ -115,6 +124,36 @@ local plugins = {
     event = "VeryLazy",
     config = true
   },
+
+  {
+    "HiPhish/rainbow-delimiters.nvim",
+    lazy = false,
+    config = function()
+      local rainbow_delimiters = require 'rainbow-delimiters'
+
+      vim.g.rainbow_delimiters = {
+        strategy = {
+          [''] = rainbow_delimiters.strategy['global'],
+          vim = rainbow_delimiters.strategy['local'],
+        },
+        query = {
+          [''] = 'rainbow-delimiters',
+          lua = 'rainbow-blocks',
+          verilog = 'rainbow-blocks',
+        },
+        highlight = {
+          'RainbowDelimiterRed',
+          'RainbowDelimiterYellow',
+          'RainbowDelimiterBlue',
+          'RainbowDelimiterOrange',
+          'RainbowDelimiterGreen',
+          'RainbowDelimiterViolet',
+          'RainbowDelimiterCyan',
+        },
+      }
+    end
+  }
+  ------------------------------------ custom plugins end --------------------------------
 }
 
 return plugins

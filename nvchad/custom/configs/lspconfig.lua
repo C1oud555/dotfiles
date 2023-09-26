@@ -53,6 +53,10 @@ lspconfig["pylsp"].setup {
 lspconfig["verible"].setup {
   on_attach = on_attach,
   capabilities = capabilities,
+  cmd = {
+    "verible-verilog-ls",
+    "--rules_config_search",
+  },
 }
 
 -- for lua

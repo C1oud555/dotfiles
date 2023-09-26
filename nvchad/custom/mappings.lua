@@ -22,6 +22,8 @@ M.general = {
     ["<leader>,"] = { "<cmd> Telescope buffers <CR>", "Find buffers" },
     ["<leader>:"] = { "<cmd> Telescope command_history <CR>", "Search Commands" },
     ["<leader>`"] = { "<cmd> bprevious <CR>", "Last buffer" },
+    ["<leader>."] = { function() require("telescope.builtin").find_files {cwd = vim.fn.expand("%:p:h")} end, "Last buffer" },
+    ["<leader> "] = { "<cmd> Telescope find_files <CR>" , "Git files" },
   },
   i = {
     -- go to  beginning and end
@@ -42,7 +44,9 @@ M.telescope = {
   n = {
     -- find
     ["<leader>fr"] = { "<cmd> Telescope oldfiles <CR>", "Find oldfiles" },
+    ["<leader>fg"] = { "<cmd> Telescope live_grep <CR>", "Live grep" },
     ["<leader>F"] = { "<cmd> Telescope file_browser <CR>", "File browser" },
+    ["<leader>ss"] = { "<cmd> Telescope current_buffer_fuzzy_find <CR>", "Find in current buffer" },
 
     -- project
     ["<leader>p"] = { "<cmd> Telescope project <CR>", "Project switcher" },
