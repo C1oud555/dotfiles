@@ -152,7 +152,11 @@ local plugins = {
         },
       }
     end
-  }
+  },
+  {
+    "Civitasv/cmake-tools.nvim",
+    -- event = "VeryLazy",
+  },
   ------------------------------------ custom plugins end --------------------------------
 }
 

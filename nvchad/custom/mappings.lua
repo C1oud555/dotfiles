@@ -10,8 +10,8 @@ M.disabled = {
   --   [ "<C-k>" ] = "",
   -- },
   n = {
-    ["<leader>n"] = "",
-    ["<leader>pt"] = "",
+    -- ["<leader>n"] = "",
+    ["<leader>b"] = "",
     ["<leader>rn"] = "",
   }
 }
@@ -22,8 +22,9 @@ M.general = {
     ["<leader>,"] = { "<cmd> Telescope buffers <CR>", "Find buffers" },
     ["<leader>:"] = { "<cmd> Telescope command_history <CR>", "Search Commands" },
     ["<leader>`"] = { "<cmd> bprevious <CR>", "Last buffer" },
-    ["<leader>."] = { function() require("telescope.builtin").find_files {cwd = vim.fn.expand("%:p:h")} end, "Last buffer" },
-    ["<leader> "] = { "<cmd> Telescope find_files <CR>" , "Git files" },
+    ["<leader>."] = { function() require("telescope.builtin").find_files { cwd = vim.fn.expand("%:p:h") } end,
+      "Last buffer" },
+    ["<leader> "] = { "<cmd> Telescope find_files <CR>", "Git files" },
   },
   i = {
     -- go to  beginning and end
@@ -49,7 +50,33 @@ M.telescope = {
     ["<leader>ss"] = { "<cmd> Telescope current_buffer_fuzzy_find <CR>", "Find in current buffer" },
 
     -- project
-    ["<leader>p"] = { "<cmd> Telescope project <CR>", "Project switcher" },
+    ["<leader>pp"] = { "<cmd> Telescope project <CR>", "Project switcher" },
+    ["<leader>pc"] = {
+      function()
+        local ft = vim.bo.filetype
+        if ft == "cpp" or ft == "c" then
+          require("cmake-tools").build{}
+        else
+          print("not set for this file type")
+        end
+      end,
+      "Project compile" },
+    ["<leader>pr"] = {
+      function()
+        local ft = vim.bo.filetype
+        if ft == "cpp" or ft == "c" then
+          require("cmake-tools").run{}
+        else
+          print("not set for this file type")
+        end
+      end,
+      "Project run"
+    },
+
+    -- buffers
+    ["<leader>bb"] = { "<cmd> Telescope buffers <CR>", "Find oldfiles" },
+    ["<leader>bn"] = { "<cmd> enew <CR>", "New buffer" },
+    ["<leader>bk"] = { "<cmd> bw! <CR>", "Find oldfiles" },
 
     -- git
 
