@@ -24,9 +24,9 @@ lspconfig["clangd"].setup {
     "clangd",
     "-j=4",
     "--clang-tidy",
-    -- "--completion-style=detailed",
+    "--completion-style=detailed",
     "--cross-file-rename",
-    "--header-insertion=iwyu",
+    "--header-insertion=never",
   },
 }
 

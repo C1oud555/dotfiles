@@ -4,7 +4,7 @@ dap.adapters.codelldb = {
   type = 'server',
   port = "${port}",
   executable = {
-    command = "/Users/hyluo/.local/bin/codelldb/adapter/codelldb",
+    command = "codelldb",
     args = { "--port", "${port}" },
   }
 }

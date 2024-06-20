@@ -101,6 +101,13 @@ local plugins = {
     end,
   },
   {
+    "theHamsta/nvim-dap-virtual-text",
+    event = "VeryLazy",
+    config = function()
+      require("nvim-dap-virtual-text").setup()
+    end,
+  },
+  {
     "rcarriga/nvim-dap-ui",
     event = "VeryLazy",
     config = function()
@@ -155,8 +162,27 @@ local plugins = {
   },
   {
     "Civitasv/cmake-tools.nvim",
-    -- event = "VeryLazy",
+    event = "VeryLazy",
+    dependencies = "NvChad/nvterm",
+    config = function()
+      local cmake = require("cmake-tools")
+      cmake.setup {
+        -- cmake_soft_link_compile_commands = false,
+        -- cmake_compile_commands_from_lsp = true,
+        cmake_executor = {
+          name = "terminal"
+        },
+        cmake_notifications = {
+          enabled = false,
+        }
+      }
+      if cmake.is_cmake_project() then
+        local cmake_tclose = vim.api.nvim_get_autocmds({ group = "cmaketools", event = "TermClose" })
+        vim.api.nvim_del_autocmd(cmake_tclose[1]["id"])
+      end
+    end
   },
+  { "RRethy/vim-illuminate", event = "VeryLazy" },
   ------------------------------------ custom plugins end --------------------------------
 }
 

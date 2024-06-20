@@ -20,11 +20,17 @@ M.general = {
   n = {
     -- [";"] = { ":", "enter command mode", opts = { nowait = true } },
     ["<leader>,"] = { "<cmd> Telescope buffers <CR>", "Find buffers" },
-    ["<leader>:"] = { "<cmd> Telescope command_history <CR>", "Search Commands" },
+    [";"] = { "<cmd> Telescope command_history <CR>", "Search Commands" },
+    ["<leader>;"] = { "<cmd> Telescope commands <CR>", "Search Commands" },
     ["<leader>`"] = { "<cmd> bprevious <CR>", "Last buffer" },
     ["<leader>."] = { function() require("telescope.builtin").find_files { cwd = vim.fn.expand("%:p:h") } end,
       "Last buffer" },
     ["<leader> "] = { "<cmd> Telescope find_files <CR>", "Git files" },
+
+    ["<leader>db"] = { "<cmd> DapToggleBreakpoint <CR>", "Debug breakpoint" },
+    ["<leader>dc"] = { "<cmd> DapContinue <CR>", "Debug continue" },
+    ["<leader>di"] = { "<cmd> DapStepInto <CR>", "Debug continue" },
+    ["<leader>do"] = { "<cmd> DapStepOver <CR>", "Debug continue" },
   },
   i = {
     -- go to  beginning and end
@@ -51,6 +57,16 @@ M.telescope = {
 
     -- project
     ["<leader>pp"] = { "<cmd> Telescope project <CR>", "Project switcher" },
+    ["<leader>pg"] = {
+      function()
+        local ft = vim.bo.filetype
+        if ft == "cpp" or ft == "c" then
+          require("cmake-tools").generate{}
+        else
+          print("not set for this file type")
+        end
+      end,
+      "Project generate" },
     ["<leader>pc"] = {
       function()
         local ft = vim.bo.filetype
@@ -95,6 +111,12 @@ M.lspconfig = {
       end,
       "LSP references",
     },
+    ["gd"] = {
+      function()
+        require("telescope.builtin").lsp_definitions()
+      end,
+      "LSP references",
+    },
     ["<leader>cs"] = {
       function()
         require("telescope.builtin").lsp_document_symbols()
@@ -105,7 +127,7 @@ M.lspconfig = {
       function()
         require("telescope.builtin").diagnostics()
       end,
-      "Document Symbols",
+      "Document Diagnostics",
     },
     ["<leader>cS"] = {
       function()
@@ -121,7 +143,7 @@ M.lspconfig = {
     },
     ["<leader>cr"] = {
       function()
-        require("nvchad_ui.renamer").open()
+        require("nvchad.renamer").open()
       end,
       "LSP formatting",
     },

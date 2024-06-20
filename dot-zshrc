@@ -1,19 +1,55 @@
-
-alias ls="exa "
+## alias
+alias ls="eza "
 alias s="kitten ssh "
+alias ls="eza "
+alias vim="nvim "
+alias cat="bat "
+alias tree="eza --tree"
+alias clion="open /Applications/CLion.app"
 
+## proxy
 export https_proxy=http://127.0.0.1:21882 http_proxy=http://127.0.0.1:21882 all_proxy=socks5://127.0.0.1:21882
 
-if [[ $(ps -p $PPID -o comm=) != "fish" && -z ${BASH_EXECUTION_STRING} ]]
-then
-	[[ -o login ]] && LOGIN_OPTION='--login' || LOGIN_OPTION=''
-	exec fish $LOGIN_OPTION
+## fzf
+# [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+zstyle ':completion:*'  matcher-list 'm:{a-z}={A-Z}'
+
+## ENV VARIBLES
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+export PATH="/Users/hyluo/Library/Python/3.9/bin:$PATH"
+export PATH="/Users/hyluo/.local/bin:$PATH"
+export PATH="/opt/homebrew/bin:$PATH"
+
+# export JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home/"
+
+export CPATH="/opt/homebrew/include/"
+export LIBRARY_PATH="/opt/homebrew/lib"
+
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+
+# man with bat
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+
+export HOMEBREW_API_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api"
+export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles"
+export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
+export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-core.git"
+export HOMEBREW_PIP_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+
+export CLION_VM_OPTIONS="/Users/hyluo/Developer/Builds/jetbra/vmoptions/clion.vmoptions"
+export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:/usr/local/lib/
+source "$HOME/.cargo/env"
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+if [[ $(ps -p $PPID -o comm=) != "fish"  &&  -z "$ZSH_EXECUTION_STRING" ]]; then
+    [[ -o login ]] && LOGIN_OPTION='--login' || LOGIN_OPTION=''
+    exec fish $LOGIN_OPTION
 fi
 
-PATH="/Users/hyluo/perl5/bin${PATH:+:${PATH}}"; export PATH;
-PERL5LIB="/Users/hyluo/perl5/lib/perl5${PERL5LIB:+:${PERL5LIB}}"; export PERL5LIB;
-PERL_LOCAL_LIB_ROOT="/Users/hyluo/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOCAL_LIB_ROOT}}"; export PERL_LOCAL_LIB_ROOT;
-PERL_MB_OPT="--install_base \"/Users/hyluo/perl5\""; export PERL_MB_OPT;
-PERL_MM_OPT="INSTALL_BASE=/Users/hyluo/perl5"; export PERL_MM_OPT;
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

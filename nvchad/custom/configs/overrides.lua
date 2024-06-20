@@ -7,10 +7,8 @@ M.treesitter = {
     "c",
     "cpp",
     "comment",
-    "scala",
     "verilog",
     "python",
-    "rust",
   },
   indent = {
     enable = true,
