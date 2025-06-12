@@ -14,6 +14,8 @@ if g.neovide then
   g.neovide_floating_blur_amount_y = 2.0
 end
 
+{{ if eq .chezmoi.os "linux" }}
+{{   if (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
 g.clipboard = {
   name = "win32yank-wsl",
   copy = {
@@ -26,3 +28,5 @@ g.clipboard = {
   },
   cache_enabled = true,
 }
+{{   end }}
+{{ end }}
