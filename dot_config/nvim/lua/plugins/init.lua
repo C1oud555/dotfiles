@@ -49,4 +49,10 @@ return {
     event = "BufReadPost",
     config = true,
   },
+  {
+    "stevearc/overseer.nvim",
+    opts = {
+      templates = { "builtin", "user.cpp_build" },
+    },
+  },
 }
