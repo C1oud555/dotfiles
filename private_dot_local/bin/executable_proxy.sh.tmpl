@@ -1,6 +1,12 @@
 #!/bin/sh
 
+{{ if eq .chezmoi.os "linux" }}
+hostip=127.0.0.1
+{{   if (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
+# WSL-specific code
 hostip=$(cat /etc/resolv.conf | grep nameserver | awk '{ print $2 }')
+{{   end }}
+{{ end }}
 wslip=$(hostname -i | awk '{print $1}')
 port=21882
 
