@@ -33,6 +33,11 @@ zi light trapd00r/LS_COLORS
 
 zstyle ':completion:*'  matcher-list 'm:{a-z}={A-Z}'
 
+{{ if eq .chezmoi.os "darwin" }}
+fpath=(/opt/homebrew/completions/zsh $fpath)
+fpath=(/opt/homebrew/share/zsh/site-functions/ $fpath)
+{{ end }}
+
 bindkey -e
 
 HISTFILE=~/.zsh_history

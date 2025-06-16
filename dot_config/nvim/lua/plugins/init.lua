@@ -1,5 +1,9 @@
 return {
   {
+    "mrcjkb/rustaceanvim",
+    dependencies = { "mfussenegger/nvim-dap", config = function() end },
+  },
+  {
     "max397574/better-escape.nvim",
     config = function()
       require("better_escape").setup()
@@ -28,6 +32,9 @@ return {
   {
     "folke/snacks.nvim",
     opts = {
+      explorer = {
+        replace_netrw = false,
+      },
       terminal = {
         win = {
           position = "float",
@@ -54,5 +61,40 @@ return {
     opts = {
       templates = { "builtin", "user.cpp_build" },
     },
+  },
+  {
+    "mikavilpas/yazi.nvim",
+    event = "VeryLazy",
+    dependencies = {
+      "folke/snacks.nvim",
+    },
+    keys = {
+      {
+        "<leader>-",
+        mode = { "n", "v" },
+        "<cmd>Yazi<cr>",
+        desc = "Open yazi at the current file",
+      },
+      {
+        -- Open in the current working directory
+        "<leader>cw",
+        "<cmd>Yazi cwd<cr>",
+        desc = "Open the file manager in nvim's working directory",
+      },
+      {
+        "<c-up>",
+        "<cmd>Yazi toggle<cr>",
+        desc = "Resume the last yazi session",
+      },
+    },
+    opts = {
+      open_for_directories = true,
+      keymaps = {
+        show_help = "<f1>",
+      },
+    },
+    init = function()
+      vim.g.loaded_netrwPlugin = 1
+    end,
   },
 }
