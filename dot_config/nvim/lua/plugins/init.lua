@@ -1,5 +1,37 @@
 return {
   {
+    "neovim/nvim-lspconfig",
+    opts = {
+      diagnostics = {
+        float = {
+          border = "rounded",
+        },
+      },
+    },
+  },
+  {
+    "noice.nvim",
+    opts = {
+      presets = { lsp_doc_border = true },
+    },
+  },
+  {
+    "saghen/blink.cmp",
+    opts = {
+      completion = {
+        menu = {
+          border = "rounded",
+          winhighlight = "Normal:BlinkCmpDoc,FloatBorder:BlinkCmpDocBorder,CursorLine:BlinkCmpDocCursorLine,Search:None",
+        },
+        documentation = {
+          window = {
+            border = "rounded",
+          },
+        },
+      },
+    },
+  },
+  {
     "mrcjkb/rustaceanvim",
     dependencies = { "mfussenegger/nvim-dap", config = function() end },
   },
