@@ -53,6 +53,7 @@ return {
   {
     "m4xshen/hardtime.nvim",
     opts = {},
+    enabled = false,
   },
   {
     "folke/snacks.nvim",
@@ -82,42 +83,24 @@ return {
     config = true,
   },
   {
-    "mikavilpas/yazi.nvim",
-    event = "VeryLazy",
-    dependencies = {
-      "folke/snacks.nvim",
-    },
-    keys = {
-      {
-        "<leader>-",
-        mode = { "n", "v" },
-        "<cmd>Yazi<cr>",
-        desc = "Open yazi at the current file",
-      },
-      {
-        -- Open in the current working directory
-        "<leader>cw",
-        "<cmd>Yazi cwd<cr>",
-        desc = "Open the file manager in nvim's working directory",
-      },
-      {
-        "<c-up>",
-        "<cmd>Yazi toggle<cr>",
-        desc = "Resume the last yazi session",
-      },
-    },
-    opts = {
-      open_for_directories = true,
-      keymaps = {
-        show_help = "<f1>",
-      },
-    },
-    init = function()
-      vim.g.loaded_netrwPlugin = 1
-    end,
+    "stevearc/oil.nvim",
+    ---@module 'oil'
+    ---@type oil.SetupOpts
+    opts = {},
+    -- Optional dependencies
+    dependencies = { { "echasnovski/mini.icons", opts = {} } },
+    -- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if you prefer nvim-web-devicons
+    -- Lazy loading is not recommended because it is very tricky to make it work correctly in all situations.
+    lazy = false,
   },
   {
     "catppuccin/nvim",
     enabled = false,
+  },
+  {
+    "nvzone/typr",
+    dependencies = "nvzone/volt",
+    opts = {},
+    cmd = { "Typr", "TyprStats" },
   },
 }
