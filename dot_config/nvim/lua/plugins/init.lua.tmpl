@@ -14,6 +14,9 @@ return {
           border = "rounded",
         },
       },
+      codelens = {
+        enabled = true,
+      },
     },
   },
   {
@@ -93,14 +96,22 @@ return {
     -- Lazy loading is not recommended because it is very tricky to make it work correctly in all situations.
     lazy = false,
   },
+
   {
     "catppuccin/nvim",
     enabled = false,
   },
   {
-    "nvzone/typr",
-    dependencies = "nvzone/volt",
-    opts = {},
-    cmd = { "Typr", "TyprStats" },
+    "folke/tokyonight.nvim",
+    enabled = false,
+  },
+  {
+    "sainnhe/gruvbox-material",
+  },
+  {
+    "LazyVim/LazyVim",
+    opts = {
+      colorscheme = "gruvbox-material",
+    },
   },
 }
