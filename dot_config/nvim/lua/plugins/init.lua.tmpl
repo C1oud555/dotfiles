@@ -96,22 +96,24 @@ return {
     -- Lazy loading is not recommended because it is very tricky to make it work correctly in all situations.
     lazy = false,
   },
-
   {
     "catppuccin/nvim",
-    enabled = false,
+    opts = function(_, opts)
+      local module = require("catppuccin.groups.integrations.bufferline")
+      if module then
+        module.get = module.get_theme
+      end
+      return opts
+    end,
   },
   {
     "folke/tokyonight.nvim",
     enabled = false,
   },
   {
-    "sainnhe/gruvbox-material",
-  },
-  {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "gruvbox-material",
+      colorscheme = "catppuccin",
     },
   },
 }
