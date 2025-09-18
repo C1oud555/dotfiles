@@ -97,22 +97,17 @@ return {
     lazy = false,
   },
   {
-    "catppuccin/nvim",
-    opts = function(_, opts)
-      local module = require("catppuccin.groups.integrations.bufferline")
-      if module then
-        module.get = module.get_theme
-      end
-      opts.transparent_background = true
-      opts.float = {
-        transparent = true,
-      }
-      return opts
-    end,
-  },
-  {
     "folke/tokyonight.nvim",
     enabled = false,
+  },
+  {
+    "catppuccin/nvim",
+    opts = {
+      transparent_background = true,
+      float = {
+        transparent = true,
+      },
+    },
   },
   {
     "LazyVim/LazyVim",
