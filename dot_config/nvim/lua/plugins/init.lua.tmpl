@@ -103,6 +103,10 @@ return {
       if module then
         module.get = module.get_theme
       end
+      opts.transparent_background = true
+      opts.float = {
+        transparent = true,
+      }
       return opts
     end,
   },
