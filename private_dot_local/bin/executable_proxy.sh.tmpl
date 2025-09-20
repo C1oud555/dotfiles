@@ -1,13 +1,5 @@
-#!/bin/sh
-
+#for wsl2, should use mirror mode
 hostip=127.0.0.1
-{{ if eq .chezmoi.os "linux" }}
-{{   if (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
-# WSL-specific code
-hostip=$(cat /etc/resolv.conf | grep nameserver | awk '{ print $2 }')
-wslip=$(hostname -i | awk '{print $1}')
-{{   end }}
-{{ end }}
 port=21882
 
 PROXY_HTTP="http://${hostip}:${port}"
@@ -27,20 +19,4 @@ unset_proxy() {
   unset HTTPS_PROXY
 }
 
-test_setting() {
-  echo "Host ip:" ${hostip}
-  echo "WSL ip:" ${wslip}
-  echo "Current proxy:" $https_proxy
-}
-
-if [ "$1" = "set" ]; then
-  set_proxy
-
-elif [ "$1" = "unset" ]; then
-  unset_proxy
-
-elif [ "$1" = "test" ]; then
-  test_setting
-else
-  echo "Unsupported arguments."
-fi
+set_proxy
