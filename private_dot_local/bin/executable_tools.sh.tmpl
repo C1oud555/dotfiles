@@ -19,4 +19,13 @@ unset_proxy() {
   unset HTTPS_PROXY
 }
 
+set_clang() {
+  export CC=clang
+  export CXX=clang++
+}
+unset_clang() {
+  unset CC
+  unset CXX
+}
+
 set_proxy
