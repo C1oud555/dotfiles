@@ -41,12 +41,13 @@ return {
       },
     },
   },
-  {
-    "max397574/better-escape.nvim",
-    config = function()
-      require("better_escape").setup()
-    end,
-  },
+  -- map caps lock to esc is more convenient
+  -- {
+  --   "max397574/better-escape.nvim",
+  --   config = function()
+  --     require("better_escape").setup()
+  --   end,
+  -- },
   {
     "RaafatTurki/hex.nvim",
     config = function()
@@ -99,46 +100,13 @@ return {
   },
   {
     "folke/tokyonight.nvim",
-    enabled = false,
-  },
-  {
-    "catppuccin/nvim",
     opts = {
-      transparent_background = true,
-      float = {
-        transparent = true,
+      transparent = true,
+      styles = {
+        sidebars = "transparent",
+        floats = "transparent",
       },
     },
   },
-  {
-    "LazyVim/LazyVim",
-    opts = {
-      colorscheme = "catppuccin",
-    },
-  },
-  {
-    "edte/novel.nvim",
-    dependencies = {
-      "folke/snacks.nvim", -- optional for snacks picker
-    },
-    -- stylua: ignore start
-    keys = {
-        { '<Leader>m/', function() require('biquge').search() end, desc = 'Search online' },
-        { '<Leader>mf', function() require('biquge').local_search() end, desc = 'Open local file' },
-        { '<Leader>md', function() require('biquge').local_browse() end, desc = 'Browse local directory' },
-        { '<Leader>mo', function() require('biquge').local_browse() end, desc = 'Open local file (browse)' },
-        { '<Leader>mb', function() require('biquge').toggle() end, desc = 'Toggle' },
-        { '<Leader>mt', function() require('biquge').toc() end, desc = 'Toc' },
-        { '<Leader>mn', function() require('biquge').next_chap() end, desc = 'Next chapter' },
-        { '<Leader>mp', function() require('biquge').prev_chap() end, desc = 'Previous chapter' },
-        { '<Leader>ms', function() require('biquge').star() end, desc = 'Star current book' },
-        { '<Leader>ml', function() require('biquge').bookshelf() end, desc = 'Bookshelf' },
-        { '<Leader>mr', function() require('biquge').resume_last_reading() end, desc = 'Resume last reading' },
-        { '<Leader>mh', function() require('biquge').reading_history() end, desc = 'Reading history' },
-        { '<M-d>', function() require('biquge').scroll(1) end, desc = 'Scroll down' },
-        { '<M-u>', function() require('biquge').scroll(-1) end, desc = 'Scroll up' },
-    },
-    -- stylua: ignore end
-    opts = {},
-  },
+  { "catppuccin/nvim", enabled = false },
 }
