@@ -2,6 +2,14 @@ return {
   {
     "neovim/nvim-lspconfig",
     opts = {
+      diagnostics = {
+        float = {
+          border = "rounded",
+        },
+      },
+      codelens = {
+        enabled = true,
+      },
       servers = {
         clangd = {
           mason = false,
@@ -25,22 +33,6 @@ return {
     opts = {
       keymaps = false,
       picker_integration = true,
-    },
-  },
-  {
-    "neovim/nvim-lspconfig",
-    opts = {
-      diagnostics = {
-        float = {
-          border = "rounded",
-        },
-      },
-      codelens = {
-        enabled = true,
-      },
-      servers = {
-        sourcekit = {},
-      },
     },
   },
   {
@@ -115,13 +107,8 @@ return {
   },
   {
     "stevearc/oil.nvim",
-    ---@module 'oil'
-    ---@type oil.SetupOpts
     opts = {},
-    -- Optional dependencies
     dependencies = { { "nvim-mini/mini.icons", opts = {} } },
-    -- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if you prefer nvim-web-devicons
-    -- Lazy loading is not recommended because it is very tricky to make it work correctly in all situations.
     lazy = false,
   },
   {
