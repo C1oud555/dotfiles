@@ -1,5 +1,25 @@
 return {
   {
+    "neovim/nvim-lspconfig",
+    opts = {
+      servers = {
+        clangd = {
+          mason = false,
+          cmd = {
+            "clangd",
+            "--experimental-modules-support",
+            "--background-index",
+            "--clang-tidy",
+            "--header-insertion=iwyu",
+            "--completion-style=detailed",
+            "--function-arg-placeholders",
+            "--fallback-style=llvm",
+          },
+        },
+      },
+    },
+  },
+  {
     "benomahony/uv.nvim",
     ft = "python",
     opts = {
