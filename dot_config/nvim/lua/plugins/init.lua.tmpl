@@ -11,6 +11,10 @@ return {
         enabled = true,
       },
       servers = {
+        zls = {
+          -- mason = false,
+        },
+        wgsl_analyzer = {},
         clangd = {
           mason = false,
           cmd = {
@@ -110,16 +114,6 @@ return {
     opts = {},
     dependencies = { { "nvim-mini/mini.icons", opts = {} } },
     lazy = false,
-  },
-  {
-    "folke/tokyonight.nvim",
-    opts = {
-      transparent = true,
-      styles = {
-        sidebars = "transparent",
-        floats = "transparent",
-      },
-    },
   },
   { "catppuccin/nvim", enabled = false },
 }
