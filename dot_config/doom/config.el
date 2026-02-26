@@ -73,6 +73,9 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
+(after! corfu-auto
+  (setq corfu-auto-delay 0.05))
+
 ;; hack for rime crash
 (defun liberime-finalize() nil)
 (add-hook 'kill-emacs-hook #'liberime-finalize)
