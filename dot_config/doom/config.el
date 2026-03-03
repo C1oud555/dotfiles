@@ -76,6 +76,9 @@
 (after! corfu-auto
   (setq corfu-auto-delay 0.05))
 
+(after! org
+  (setq org-log-done 'time))
+
 ;; hack for rime crash
 (defun liberime-finalize() nil)
 (add-hook 'kill-emacs-hook #'liberime-finalize)
