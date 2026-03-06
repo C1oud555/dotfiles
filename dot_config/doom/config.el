@@ -77,7 +77,8 @@
   (setq corfu-auto-delay 0.05))
 
 (after! org
-  (setq org-log-done 'time))
+  (setq org-log-done 'time)
+  (setq org-agenda-start-with-log-mode '(closed clock)))
 
 ;; hack for rime crash
 (defun liberime-finalize() nil)
