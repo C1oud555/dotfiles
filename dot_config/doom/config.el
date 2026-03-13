@@ -80,6 +80,9 @@
   (setq org-log-done 'time)
   (setq org-agenda-start-with-log-mode '(closed clock)))
 
+(with-eval-after-load 'python
+  (set-formatter! 'ruff :modes '(python-mode python-ts-mode)))
+
 ;; hack for rime crash
 (defun liberime-finalize() nil)
 (add-hook 'kill-emacs-hook #'liberime-finalize)
