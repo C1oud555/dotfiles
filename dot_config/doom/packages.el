@@ -53,6 +53,4 @@
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;; (unpin! t)
 
-(package! shell-maker)
-(package! acp)
-(package! agent-shell)
+(package! breadcrumb)

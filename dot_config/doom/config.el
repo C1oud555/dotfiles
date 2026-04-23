@@ -85,3 +85,7 @@
 ;; hack for rime crash
 (defun liberime-finalize() nil)
 (add-hook 'kill-emacs-hook #'liberime-finalize)
+
+(use-package! breadcrumb
+  :hook (eglot-managed-mode . breadcrumb-local-mode))
+	      
