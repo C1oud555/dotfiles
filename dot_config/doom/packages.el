@@ -54,3 +54,5 @@
 ;; (unpin! t)
 
 (package! breadcrumb)
+(package! rime)
+(package! posframe)

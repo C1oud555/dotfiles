@@ -83,9 +83,16 @@
 (setq-hook! 'python-ts-mode-hook +format-with 'ruff)
 
 ;; hack for rime crash
-(defun liberime-finalize() nil)
-(add-hook 'kill-emacs-hook #'liberime-finalize)
+(defun rime-lib-finalize() nil)
+(add-hook 'kill-emacs-hook #'rime-lib-finalize)
 
 (use-package! breadcrumb
   :hook (eglot-managed-mode . breadcrumb-local-mode))
-	      
+
+(use-package! rime
+  :custom
+  (default-input-method "rime")
+  (rime-show-candidate 'posframe)
+
+  :config
+  )
