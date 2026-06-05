@@ -86,6 +86,12 @@
 (defun rime-lib-finalize() nil)
 (add-hook 'kill-emacs-hook #'rime-lib-finalize)
 
+(after! evil-snipe
+  (setq evil-snipe-scope 'whole-visible)
+  (setq evil-snipe-repeat-scope 'whole-visible)
+  (setq evil-snipe-smart-case t))
+
+
 (use-package! breadcrumb
   :hook (eglot-managed-mode . breadcrumb-local-mode))
 
