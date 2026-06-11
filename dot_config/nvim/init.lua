@@ -20,7 +20,7 @@ vim.g.maplocalleader = ","
 local opt = vim.opt
 
 opt.number = true
-opt.relativenumber = true
+opt.relativenumber = false
 opt.cursorline = true
 opt.signcolumn = "yes"
 opt.termguicolors = true
@@ -35,7 +35,7 @@ opt.undofile = true
 opt.showmode = false
 opt.laststatus = 3
 opt.completeopt = { "menu", "menuone", "noselect" }
-opt.pumblend = 8
+opt.pumblend = 15
 opt.scrolloff = 8
 opt.sidescrolloff = 8
 opt.wrap = false
@@ -43,6 +43,7 @@ opt.expandtab = true
 opt.shiftwidth = 4
 opt.tabstop = 4
 opt.softtabstop = 4
+opt.mouse = "a"
 
 -- Neovim 0.12 全局 floating window border。
 vim.o.winborder = "rounded"
@@ -53,6 +54,8 @@ opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 opt.foldlevel = 99
 opt.foldlevelstart = 99
 opt.foldenable = true
+opt.list = true
+opt.listchars = { trail = "·", tab = "▸ " }
 
 -- 偏 C++ 工作流：把 .h 当作 C++。
 vim.filetype.add({
@@ -77,6 +80,11 @@ vim.pack.add({
     { src = "https://github.com/Saghen/blink.cmp",                 version = "v1" },
     { src = "https://github.com/lewis6991/gitsigns.nvim" },
     { src = "https://github.com/romus204/tree-sitter-manager.nvim" },
+    { src = "https://github.com/nvim-lualine/lualine.nvim" },
+    { src = "https://github.com/folke/flash.nvim" },
+    { src = "https://github.com/nvim-mini/mini.ai" },
+    { src = "https://github.com/nvim-mini/mini.pairs" },
+    { src = "https://github.com/NTBBloodbath/doom-one.nvim" },
 }, {
     confirm = false,
 })
@@ -85,7 +93,7 @@ vim.pack.add({
 -- Theme
 -- ----------------------------------------------------------------------------
 
-vim.cmd.colorscheme("catppuccin")
+vim.cmd.colorscheme("doom-one")
 
 -- ----------------------------------------------------------------------------
 -- Icons
@@ -94,6 +102,27 @@ vim.cmd.colorscheme("catppuccin")
 require("nvim-web-devicons").setup({
     default = true,
     color_icons = true,
+})
+
+-- ----------------------------------------------------------------------------
+-- lualine.nvim
+-- ----------------------------------------------------------------------------
+
+require("lualine").setup({
+    options = {
+        icons_enabled = true,
+        theme = "auto",
+        component_separators = "",
+        section_separators = "",
+    },
+    sections = {
+        lualine_a = { "mode" },
+        lualine_b = { "branch" },
+        lualine_c = { { "filename", path = 1 } },
+        lualine_x = { "diagnostics", "filetype" },
+        lualine_y = { "progress" },
+        lualine_z = { "location" },
+    },
 })
 
 -- ----------------------------------------------------------------------------
@@ -106,7 +135,6 @@ Snacks.setup({
     bigfile = { enabled = true },
     quickfile = { enabled = true },
 
-    dashboard = { enabled = true },
     input = { enabled = true },
     notifier = {
         enabled = true,
@@ -248,6 +276,31 @@ wk.add({
 })
 
 -- ----------------------------------------------------------------------------
+-- flash.nvim
+-- ----------------------------------------------------------------------------
+
+require("flash").setup({
+    modes = {
+        search = { enabled = true },
+        char = { enabled = true },
+        treesitter = { labels = "abcdefghijklmnopqrstuvwxyz" },
+    },
+})
+
+wk.add({
+    { "s", function() require("flash").jump() end,            desc = "flash jump",         mode = { "n", "x", "o" } },
+    { "S", function() require("flash").treesitter() end,       desc = "flash treesitter",   mode = { "n", "x", "o" } },
+    -- { "r", function() require("flash").remote() end,           desc = "flash remote",       mode = "o" },
+})
+
+-- ----------------------------------------------------------------------------
+-- mini.nvim editing modules
+-- ----------------------------------------------------------------------------
+
+require("mini.ai").setup({ n_lines = 500 })
+require("mini.pairs").setup()
+
+-- ----------------------------------------------------------------------------
 -- Completion: blink.cmp
 -- ----------------------------------------------------------------------------
 
@@ -296,25 +349,6 @@ require("tree-sitter-manager").setup({
 
     -- nil 也可以，因为它会使用 vim.o.winborder。
     border = "rounded",
-})
-
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = {
-        "c",
-        "cpp",
-        "python",
-        "rust",
-        "toml",
-        "cmake",
-        "lua",
-    },
-    callback = function()
-        pcall(vim.treesitter.start)
-
-        vim.wo.foldmethod = "expr"
-        vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-        vim.wo.foldlevel = 99
-    end,
 })
 
 -- ----------------------------------------------------------------------------
@@ -488,6 +522,13 @@ vim.diagnostic.config({
     underline = true,
 })
 
+local diagnostics_enabled = true
+
+local function toggle_diagnostics()
+    diagnostics_enabled = not diagnostics_enabled
+    vim.diagnostic.enable(diagnostics_enabled)
+end
+
 local function lsp_format(bufnr)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
 
@@ -535,445 +576,90 @@ end
 -- ----------------------------------------------------------------------------
 
 wk.add({
-    -- Top-level
-    {
-        "<leader>:",
-        function()
-            Snacks.picker.commands()
-        end,
-        desc = "M-x commands",
-        mode = "n",
-    },
-    {
-        "<leader><leader>",
-        function()
-            Snacks.picker.smart()
-        end,
-        desc = "smart find",
-        mode = "n",
-    },
-    {
-        "<leader>.",
-        function()
-            Snacks.picker.files()
-        end,
-        desc = "find file",
-        mode = "n",
-    },
-    {
-        "<leader>/",
-        function()
-            Snacks.picker.grep()
-        end,
-        desc = "search project",
-        mode = "n",
-    },
+    { "<leader>:",        function() Snacks.picker.commands() end,                                desc = "M-x commands",     mode = "n" },
+    { "<leader><leader>", function() Snacks.picker.smart() end,                                   desc = "smart find",       mode = "n" },
+    { "<leader>.",        function() Snacks.picker.files() end,                                   desc = "find file",        mode = "n" },
+    { "<leader>/",        function() Snacks.picker.grep() end,                                    desc = "search project",   mode = "n" },
 
-    -- File: SPC f
-    {
-        "<leader>ff",
-        function()
-            Snacks.picker.files()
-        end,
-        desc = "find file",
-        mode = "n",
-    },
-    {
-        "<leader>fp",
-        function()
-            Snacks.picker.files({ cwd = vim.fn.stdpath("config") })
-        end,
-        desc = "find config file",
-        mode = "n",
-    },
-    {
-        "<leader>fr",
-        function()
-            Snacks.picker.recent()
-        end,
-        desc = "recent files",
-        mode = "n",
-    },
-    {
-        "<leader>fs",
-        "<cmd>write<cr>",
-        desc = "save file",
-        mode = "n",
-    },
+    { "<leader>ff",       function() Snacks.picker.files() end,                                   desc = "find file",        mode = "n" },
+    { "<leader>fp",       function() Snacks.picker.files({ cwd = vim.fn.stdpath("config") }) end, desc = "find config file", mode = "n" },
+    { "<leader>fr",       function() Snacks.picker.recent() end,                                  desc = "recent files",     mode = "n" },
+    { "<leader>fs",       "<cmd>write<cr>",                                                       desc = "save file",        mode = "n" },
     {
         "<leader>fy",
         function()
-            local path = vim.fn.expand("%:p")
-            vim.fn.setreg("+", path)
-            vim.notify("Copied: " .. path)
+            vim.fn.setreg("+", vim.fn.expand("%:p")); vim.notify("path yanked")
         end,
         desc = "yank file path",
-        mode = "n",
+        mode = "n"
     },
 
-    -- Project: SPC p
-    {
-        "<leader>pf",
-        function()
-            Snacks.picker.git_files()
-        end,
-        desc = "project files",
-        mode = "n",
-    },
-    {
-        "<leader>pp",
-        function()
-            Snacks.picker.projects()
-        end,
-        desc = "switch project",
-        mode = "n",
-    },
-    {
-        "<leader>ps",
-        function()
-            Snacks.picker.grep()
-        end,
-        desc = "search project",
-        mode = "n",
-    },
-    {
-        "<leader>pe",
-        function()
-            Snacks.explorer()
-        end,
-        desc = "project explorer",
-        mode = "n",
-    },
+    { "<leader>pf", function() Snacks.picker.git_files() end,                                 desc = "project files",          mode = "n" },
+    { "<leader>pp", function() Snacks.picker.projects() end,                                  desc = "switch project",         mode = "n" },
+    { "<leader>ps", function() Snacks.picker.grep() end,                                      desc = "search project",         mode = "n" },
+    { "<leader>pe", function() Snacks.explorer() end,                                         desc = "project explorer",       mode = "n" },
 
-    -- Buffer: SPC b
-    {
-        "<leader>bb",
-        function()
-            Snacks.picker.buffers()
-        end,
-        desc = "switch buffer",
-        mode = "n",
-    },
-    {
-        "<leader>bd",
-        function()
-            Snacks.bufdelete()
-        end,
-        desc = "delete buffer",
-        mode = "n",
-    },
-    {
-        "<leader>bn",
-        "<cmd>bnext<cr>",
-        desc = "next buffer",
-        mode = "n",
-    },
-    {
-        "<leader>bp",
-        "<cmd>bprevious<cr>",
-        desc = "previous buffer",
-        mode = "n",
-    },
+    { "<leader>bb", function() Snacks.picker.buffers() end,                                   desc = "switch buffer",          mode = "n" },
+    { "<leader>bd", function() Snacks.bufdelete() end,                                        desc = "delete buffer",          mode = "n" },
+    { "<leader>bn", "<cmd>bnext<cr>",                                                         desc = "next buffer",            mode = "n" },
+    { "<leader>bp", "<cmd>bprevious<cr>",                                                     desc = "previous buffer",        mode = "n" },
 
-    -- Search: SPC s
-    {
-        "<leader>sp",
-        function()
-            Snacks.picker.grep()
-        end,
-        desc = "search project",
-        mode = "n",
-    },
-    {
-        "<leader>sb",
-        function()
-            Snacks.picker.lines()
-        end,
-        desc = "search buffer",
-        mode = "n",
-    },
-    {
-        "<leader>sB",
-        function()
-            Snacks.picker.grep_buffers()
-        end,
-        desc = "search open buffers",
-        mode = "n",
-    },
-    {
-        "<leader>sd",
-        function()
-            Snacks.picker.diagnostics()
-        end,
-        desc = "workspace diagnostics",
-        mode = "n",
-    },
-    {
-        "<leader>sD",
-        function()
-            Snacks.picker.diagnostics_buffer()
-        end,
-        desc = "buffer diagnostics",
-        mode = "n",
-    },
-    {
-        "<leader>sh",
-        function()
-            Snacks.picker.help()
-        end,
-        desc = "help pages",
-        mode = "n",
-    },
-    {
-        "<leader>sk",
-        function()
-            Snacks.picker.keymaps()
-        end,
-        desc = "keymaps",
-        mode = "n",
-    },
-    {
-        "<leader>sr",
-        function()
-            Snacks.picker.resume()
-        end,
-        desc = "resume picker",
-        mode = "n",
-    },
-    {
-        "<leader>ss",
-        function()
-            Snacks.picker.lsp_symbols()
-        end,
-        desc = "document symbols",
-        mode = "n",
-    },
-    {
-        "<leader>sS",
-        function()
-            Snacks.picker.lsp_workspace_symbols()
-        end,
-        desc = "workspace symbols",
-        mode = "n",
-    },
+    { "<leader>sp", function() Snacks.picker.grep() end,                                      desc = "search project",         mode = "n" },
+    { "<leader>sb", function() Snacks.picker.lines() end,                                     desc = "search buffer",          mode = "n" },
+    { "<leader>sB", function() Snacks.picker.grep_buffers() end,                              desc = "search buffers",         mode = "n" },
+    { "<leader>sd", function() Snacks.picker.diagnostics() end,                               desc = "workspace diagnostics",  mode = "n" },
+    { "<leader>sD", function() Snacks.picker.diagnostics_buffer() end,                        desc = "buffer diagnostics",     mode = "n" },
+    { "<leader>sh", function() Snacks.picker.help() end,                                      desc = "help pages",             mode = "n" },
+    { "<leader>sk", function() Snacks.picker.keymaps() end,                                   desc = "keymaps",                mode = "n" },
+    { "<leader>sr", function() Snacks.picker.resume() end,                                    desc = "resume picker",          mode = "n" },
+    { "<leader>ss", function() Snacks.picker.lsp_symbols() end,                               desc = "document symbols",       mode = "n" },
+    { "<leader>sS", function() Snacks.picker.lsp_workspace_symbols() end,                     desc = "workspace symbols",      mode = "n" },
 
-    -- Open: SPC o
-    {
-        "<leader>op",
-        function()
-            Snacks.explorer()
-        end,
-        desc = "project explorer",
-        mode = "n",
-    },
-    {
-        "<leader>oP",
-        function()
-            Snacks.explorer.reveal()
-        end,
-        desc = "reveal current file",
-        mode = "n",
-    },
-    {
-        "<leader>ot",
-        function()
-            Snacks.terminal()
-        end,
-        desc = "terminal",
-        mode = "n",
-    },
-    {
-        "<leader>os",
-        function()
-            Snacks.scratch()
-        end,
-        desc = "scratch buffer",
-        mode = "n",
-    },
-    {
-        "<leader>oS",
-        function()
-            Snacks.scratch.select()
-        end,
-        desc = "select scratch buffer",
-        mode = "n",
-    },
+    { "<leader>op", function() Snacks.explorer() end,                                         desc = "project explorer",       mode = "n" },
+    { "<leader>oP", function() Snacks.explorer.reveal() end,                                  desc = "reveal current file",    mode = "n" },
+    { "<leader>ot", function() Snacks.terminal() end,                                         desc = "terminal",               mode = "n" },
+    { "<leader>os", function() Snacks.scratch() end,                                          desc = "scratch buffer",         mode = "n" },
+    { "<leader>oS", function() Snacks.scratch.select() end,                                   desc = "select scratch",         mode = "n" },
 
-    -- Git: SPC g
-    {
-        "<leader>gg",
-        function()
-            Snacks.lazygit()
-        end,
-        desc = "lazygit",
-        mode = "n",
-    },
-    {
-        "<leader>gs",
-        function()
-            Snacks.picker.git_status()
-        end,
-        desc = "git status",
-        mode = "n",
-    },
-    {
-        "<leader>gl",
-        function()
-            Snacks.picker.git_log()
-        end,
-        desc = "git log",
-        mode = "n",
-    },
-    {
-        "<leader>gL",
-        function()
-            Snacks.picker.git_log_line()
-        end,
-        desc = "git log current line",
-        mode = "n",
-    },
-    {
-        "<leader>gf",
-        function()
-            Snacks.picker.git_log_file()
-        end,
-        desc = "git log current file",
-        mode = "n",
-    },
-    {
-        "<leader>gB",
-        function()
-            Snacks.picker.git_branches()
-        end,
-        desc = "git branches",
-        mode = "n",
-    },
-    {
-        "<leader>gy",
-        function()
-            Snacks.gitbrowse()
-        end,
-        desc = "browse remote",
-        mode = { "n", "x" },
-    },
+    { "<leader>gg", function() Snacks.lazygit() end,                                          desc = "lazygit",                mode = "n" },
+    { "<leader>gs", function() Snacks.picker.git_status() end,                                desc = "git status",             mode = "n" },
+    { "<leader>gl", function() Snacks.picker.git_log() end,                                   desc = "git log",                mode = "n" },
+    { "<leader>gL", function() Snacks.picker.git_log_line() end,                              desc = "git log line",           mode = "n" },
+    { "<leader>gf", function() Snacks.picker.git_log_file() end,                              desc = "git log file",           mode = "n" },
+    { "<leader>gB", function() Snacks.picker.git_branches() end,                              desc = "git branches",           mode = "n" },
+    { "<leader>gy", function() Snacks.gitbrowse() end,                                        desc = "browse remote",          mode = { "n", "x" } },
 
-    -- Help: SPC h
-    {
-        "<leader>hh",
-        function()
-            Snacks.picker.help()
-        end,
-        desc = "help",
-        mode = "n",
-    },
-    {
-        "<leader>hk",
-        function()
-            Snacks.picker.keymaps()
-        end,
-        desc = "keymaps",
-        mode = "n",
-    },
-    {
-        "<leader>hm",
-        function()
-            Snacks.picker.man()
-        end,
-        desc = "man pages",
-        mode = "n",
-    },
-    {
-        "<leader>hc",
-        function()
-            Snacks.picker.colorschemes()
-        end,
-        desc = "colorschemes",
-        mode = "n",
-    },
+    { "<leader>hh", function() Snacks.picker.help() end,                                      desc = "help",                   mode = "n" },
+    { "<leader>hk", function() Snacks.picker.keymaps() end,                                   desc = "keymaps",                mode = "n" },
+    { "<leader>hm", function() Snacks.picker.man() end,                                       desc = "man pages",              mode = "n" },
+    { "<leader>hc", function() Snacks.picker.colorschemes() end,                              desc = "colorschemes",           mode = "n" },
 
-    -- Window: SPC w
-    { "<leader>wv", "<cmd>vsplit<cr>",  desc = "vertical split",   mode = "n" },
-    { "<leader>ws", "<cmd>split<cr>",   desc = "horizontal split", mode = "n" },
-    { "<leader>wd", "<cmd>close<cr>",   desc = "delete window",    mode = "n" },
-    { "<leader>wh", "<C-w>h",           desc = "window left",      mode = "n" },
-    { "<leader>wj", "<C-w>j",           desc = "window down",      mode = "n" },
-    { "<leader>wk", "<C-w>k",           desc = "window up",        mode = "n" },
-    { "<leader>wl", "<C-w>l",           desc = "window right",     mode = "n" },
-    { "<leader>w=", "<C-w>=",           desc = "balance windows",  mode = "n" },
+    { "<leader>wv", "<cmd>vsplit<cr>",                                                        desc = "vertical split",         mode = "n" },
+    { "<leader>ws", "<cmd>split<cr>",                                                         desc = "horizontal split",       mode = "n" },
+    { "<leader>wd", "<cmd>close<cr>",                                                         desc = "delete window",          mode = "n" },
+    { "<leader>wh", "<C-w>h",                                                                 desc = "window left",            mode = "n" },
+    { "<leader>wj", "<C-w>j",                                                                 desc = "window down",            mode = "n" },
+    { "<leader>wk", "<C-w>k",                                                                 desc = "window up",              mode = "n" },
+    { "<leader>wl", "<C-w>l",                                                                 desc = "window right",           mode = "n" },
+    { "<leader>w=", "<C-w>=",                                                                 desc = "balance windows",        mode = "n" },
 
-    -- Quit/session: SPC q
-    { "<leader>qq", "<cmd>quit<cr>",    desc = "quit",             mode = "n" },
-    { "<leader>qQ", "<cmd>qa<cr>",      desc = "quit all",         mode = "n" },
-    { "<leader>qr", "<cmd>restart<cr>", desc = "restart Neovim",   mode = "n" },
+    { "<leader>qq", "<cmd>quit<cr>",                                                          desc = "quit",                   mode = "n" },
+    { "<leader>qQ", "<cmd>qa<cr>",                                                            desc = "quit all",               mode = "n" },
+    { "<leader>qr", "<cmd>restart<cr>",                                                       desc = "restart Neovim",         mode = "n" },
 
-    -- Treesitter manager
-    {
-        "<leader>tT",
-        "<cmd>TSManager<cr>",
-        desc = "treesitter manager",
-        mode = "n",
-    },
+    { "<leader>tT", "<cmd>TSManager<cr>",                                                     desc = "treesitter manager",     mode = "n" },
 
-    -- Toggle: SPC t
-    {
-        "<leader>tn",
-        function()
-            vim.opt.relativenumber = not vim.opt.relativenumber:get()
-        end,
-        desc = "toggle relative number",
-        mode = "n",
-    },
-    {
-        "<leader>tw",
-        function()
-            vim.opt.wrap = not vim.opt.wrap:get()
-        end,
-        desc = "toggle wrap",
-        mode = "n",
-    },
     {
         "<leader>ti",
         function()
-            local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = 0 })
-            vim.lsp.inlay_hint.enable(not enabled, { bufnr = 0 })
+            local e = vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }); vim.lsp.inlay_hint.enable(not e, { bufnr = 0 })
         end,
         desc = "toggle inlay hints",
-        mode = "n",
+        mode = "n"
     },
-    {
-        "<leader>tz",
-        function()
-            Snacks.zen()
-        end,
-        desc = "toggle zen",
-        mode = "n",
-    },
-    {
-        "<leader>tf",
-        function()
-            if vim.wo.foldcolumn == "0" then
-                vim.wo.foldcolumn = "1"
-            else
-                vim.wo.foldcolumn = "0"
-            end
-        end,
-        desc = "toggle foldcolumn",
-        mode = "n",
-    },
-})
-
-local diagnostics_enabled = true
-
-wk.add({
-    {
-        "<leader>td",
-        function()
-            diagnostics_enabled = not diagnostics_enabled
-            vim.diagnostic.enable(diagnostics_enabled)
-        end,
-        desc = "toggle diagnostics",
-        mode = "n",
-    },
+    { "<leader>tz", function() Snacks.zen() end,                                                desc = "toggle zen",         mode = "n" },
+    { "<leader>tf", function() vim.wo.foldcolumn = vim.wo.foldcolumn == "0" and "1" or "0" end, desc = "toggle foldcolumn",  mode = "n" },
+    { "<leader>td", toggle_diagnostics,                                                         desc = "toggle diagnostics", mode = "n" },
 })
 
 -- ----------------------------------------------------------------------------
@@ -1008,106 +694,40 @@ vim.api.nvim_create_autocmd("LspAttach", {
         -- Doom-like SPC c
         n("<leader>ca", vim.lsp.buf.code_action, "code action")
         x("<leader>ca", vim.lsp.buf.code_action, "code action")
-
-        n("<leader>cd", function()
-            Snacks.picker.lsp_definitions()
-        end, "definition")
-
-        n("<leader>cD", function()
-            Snacks.picker.lsp_declarations()
-        end, "declaration")
-
+        n("<leader>cd", function() Snacks.picker.lsp_definitions() end, "definition")
+        n("<leader>cD", function() Snacks.picker.lsp_declarations() end, "declaration")
         n("<leader>cr", vim.lsp.buf.rename, "rename")
-
-        n("<leader>cR", function()
-            Snacks.picker.lsp_references()
-        end, "references")
-
-        n("<leader>ci", function()
-            Snacks.picker.lsp_implementations()
-        end, "implementation")
-
-        n("<leader>ct", function()
-            Snacks.picker.lsp_type_definitions()
-        end, "type definition")
-
+        n("<leader>cR", function() Snacks.picker.lsp_references() end, "references")
+        n("<leader>ci", function() Snacks.picker.lsp_implementations() end, "implementation")
+        n("<leader>ct", function() Snacks.picker.lsp_type_definitions() end, "type definition")
         n("<leader>ck", vim.lsp.buf.hover, "documentation")
-
-        n("<leader>cf", function()
-            lsp_format(bufnr)
-        end, "format buffer")
-
-        n("<leader>co", function()
-            source_action("source.organizeImports.ruff")
-        end, "organize imports")
-
-        n("<leader>cF", function()
-            source_action("source.fixAll.ruff")
-        end, "fix all")
-
-        n("<leader>cx", function()
-            Snacks.picker.diagnostics_buffer()
-        end, "buffer diagnostics")
-
-        n("<leader>cX", function()
-            Snacks.picker.diagnostics()
-        end, "workspace diagnostics")
-
-        n("<leader>cs", function()
-            Snacks.picker.lsp_symbols()
-        end, "document symbols")
-
-        n("<leader>cS", function()
-            Snacks.picker.lsp_workspace_symbols()
-        end, "workspace symbols")
+        n("<leader>cf", function() lsp_format(bufnr) end, "format buffer")
+        n("<leader>co", function() source_action("source.organizeImports.ruff") end, "organize imports")
+        n("<leader>cF", function() source_action("source.fixAll.ruff") end, "fix all")
+        n("<leader>cx", function() Snacks.picker.diagnostics_buffer() end, "buffer diagnostics")
+        n("<leader>cX", function() Snacks.picker.diagnostics() end, "workspace diagnostics")
+        n("<leader>cs", function() Snacks.picker.lsp_symbols() end, "document symbols")
+        n("<leader>cS", function() Snacks.picker.lsp_workspace_symbols() end, "workspace symbols")
 
         -- Localleader aliases: "," and "SPC m"
         local_n("a", vim.lsp.buf.code_action, "code action")
-        local_n("d", function()
-            Snacks.picker.lsp_definitions()
-        end, "definition")
-        local_n("D", function()
-            Snacks.picker.lsp_references()
-        end, "references")
-        local_n("f", function()
-            lsp_format(bufnr)
-        end, "format")
-        local_n("i", function()
-            Snacks.picker.lsp_implementations()
-        end, "implementation")
+        local_n("d", function() Snacks.picker.lsp_definitions() end, "definition")
+        local_n("D", function() Snacks.picker.lsp_references() end, "references")
+        local_n("f", function() lsp_format(bufnr) end, "format")
+        local_n("i", function() Snacks.picker.lsp_implementations() end, "implementation")
         local_n("k", vim.lsp.buf.hover, "documentation")
         local_n("r", vim.lsp.buf.rename, "rename")
-        local_n("t", function()
-            Snacks.picker.lsp_type_definitions()
-        end, "type definition")
-        local_n("x", function()
-            Snacks.picker.diagnostics_buffer()
-        end, "diagnostics")
+        local_n("t", function() Snacks.picker.lsp_type_definitions() end, "type definition")
+        local_n("x", function() Snacks.picker.diagnostics_buffer() end, "diagnostics")
 
         -- Keep common Vim/Neovim muscle memory.
-        n("gd", function()
-            Snacks.picker.lsp_definitions()
-        end, "definition")
-
-        n("gD", function()
-            Snacks.picker.lsp_declarations()
-        end, "declaration")
-
-        n("gr", function()
-            Snacks.picker.lsp_references()
-        end, "references")
-
-        n("gi", function()
-            Snacks.picker.lsp_implementations()
-        end, "implementation")
-
-        n("gy", function()
-            Snacks.picker.lsp_type_definitions()
-        end, "type definition")
-
+        n("gd", function() Snacks.picker.lsp_definitions() end, "definition")
+        n("gD", function() Snacks.picker.lsp_declarations() end, "declaration")
+        n("gr", function() Snacks.picker.lsp_references() end, "references")
+        n("gi", function() Snacks.picker.lsp_implementations() end, "implementation")
+        n("gy", function() Snacks.picker.lsp_type_definitions() end, "type definition")
         n("K", vim.lsp.buf.hover, "hover")
-
-        n("[d", vim.diagnostic.goto_prev, "previous diagnostic")
-        n("]d", vim.diagnostic.goto_next, "next diagnostic")
+        n("[e", function() vim.diagnostic.jump({ count = -1 }) end, "previous diagnostic")
+        n("]e", function() vim.diagnostic.jump({ count = 1 }) end, "next diagnostic")
     end,
 })
