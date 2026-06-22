@@ -77,8 +77,43 @@
   (setq corfu-auto-delay 0.05))
 
 (after! org
-  (setq org-log-done 'time)
-  (setq org-agenda-start-with-log-mode '(closed clock)))
+  (setq
+   org-capture-templates
+   '(("t" "Personal todo" entry (file +org-capture-todo-file)
+      "* TODO %?\n%i\n%a" :prepend t)
+     ("n" "Personal notes" entry
+      (file +org-capture-notes-file)
+      "* %u %?\n%i\n%a" :prepend t)
+     ("w" "Work todo" entry (file "work.org")
+      "* TODO %?\n%i\n%a" :prepend t))
+   org-todo-keywords
+   '((sequence "TODO(t)" "PROJ(p)" "LOOP(r)" "STRT(s)" "WAIT(w)" "HOLD(h)" "IDEA(i)"
+      "|" "DONE(d)" "KILL(k)"))
+   org-agenda-files '("todo.org")
+   org-log-done 'time
+   org-agenda-start-with-log-mode '(closed clock)
+   org-tags-exclude-from-inheritance '("crypt"))
+
+  (defun my/org-agenda-personal-todos ()
+    "Show TODOs from todo.org only."
+    (interactive)
+    (let ((org-agenda-files
+           (list (expand-file-name "todo.org" org-directory))))
+      (org-todo-list)))
+
+  (defun my/org-agenda-work-todos ()
+    "Show TODOs from work.org only."
+    (interactive)
+    (let ((org-agenda-files
+           (list (expand-file-name "work.org" org-directory))))
+      (org-todo-list)))
+
+  (org-crypt-use-before-save-magic))
+
+(map! :leader
+      (:prefix ("n" . "notes")
+       :desc "Personal TODOs" "t" #'my/org-agenda-personal-todos
+       :desc "Work TODOs"     "w" #'my/org-agenda-work-todos))
 
 (setq-hook! 'python-ts-mode-hook +format-with 'ruff)
 
@@ -87,9 +122,10 @@
 (add-hook 'kill-emacs-hook #'rime-lib-finalize)
 
 (after! evil-snipe
-  (setq evil-snipe-scope 'whole-visible)
-  (setq evil-snipe-repeat-scope 'whole-visible)
-  (setq evil-snipe-smart-case t))
+  (setq
+   evil-snipe-scope 'whole-visiblewa
+   evil-snipe-repeat-scope 'whole-visible
+   evil-snipe-smart-case t))
 
 
 (use-package! breadcrumb
@@ -98,7 +134,4 @@
 (use-package! rime
   :custom
   (default-input-method "rime")
-  (rime-show-candidate 'posframe)
-
-  :config
-  )
+  (rime-show-candidate 'posframe))
