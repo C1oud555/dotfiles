@@ -133,6 +133,13 @@
 
 (use-package! rime
   :custom
+  (mode-line-mule-info '((:eval (rime-lighter))))
+  (rime-disable-predicates
+   '(rime-predicate-evil-mode-p
+     rime-predicate-current-uppercase-letter-p
+     rime-predicate-space-after-cc-p
+     rime-predicate-after-alphabet-char-p
+     rime-predicate-prog-in-code-p))
   (default-input-method "rime")
   (rime-show-candidate 'posframe))
 
