@@ -135,3 +135,17 @@
   :custom
   (default-input-method "rime")
   (rime-show-candidate 'posframe))
+
+(after! orderless
+  (use-package! pinyinlib)
+
+  (defun +my-orderless-pinyin-dispatcher (pattern _index _total)
+    (when (let ((case-fold-search nil))
+            (string-match-p "\\`[A-Z]\\{2,\\}\\'" pattern))
+      `(orderless-regexp
+        . ,(pinyinlib-build-regexp-string
+            (downcase pattern)
+            t))))
+
+  (add-to-list 'orderless-style-dispatchers
+               #'+my-orderless-pinyin-dispatcher))

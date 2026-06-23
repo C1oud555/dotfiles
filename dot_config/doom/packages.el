@@ -56,3 +56,4 @@
 (package! breadcrumb)
 (package! rime)
 (package! posframe)
+(package! pinyinlib)
