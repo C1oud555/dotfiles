@@ -123,7 +123,7 @@
 
 (after! evil-snipe
   (setq
-   evil-snipe-scope 'whole-visiblewa
+   evil-snipe-scope 'whole-visible
    evil-snipe-repeat-scope 'whole-visible
    evil-snipe-smart-case t))
 
