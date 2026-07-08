@@ -121,12 +121,6 @@
 (defun rime-lib-finalize() nil)
 (add-hook 'kill-emacs-hook #'rime-lib-finalize)
 
-(after! evil-snipe
-  (setq
-   evil-snipe-scope 'whole-visible
-   evil-snipe-repeat-scope 'whole-visible
-   evil-snipe-smart-case t))
-
 
 (use-package! breadcrumb
   :hook (eglot-managed-mode . breadcrumb-local-mode))
@@ -156,3 +150,18 @@
 
   (add-to-list 'orderless-style-dispatchers
                #'+my-orderless-pinyin-dispatcher))
+
+(use-package! flash
+  :commands (flash-jump flash-treesitter)
+  :custom
+  (flash-multi-window t)
+  :init
+  (with-eval-after-load 'evil-snipe
+    (require 'flash-evil)
+    (flash-evil-setup t))
+  :config
+  (require 'flash-isearch)
+  (flash-isearch-mode 1))
+
+(map! :after evil
+      :nv "s" #'flash-jump)

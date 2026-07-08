@@ -57,3 +57,5 @@
 (package! rime)
 (package! posframe)
 (package! pinyinlib)
+(package! flash)
+(package! evil-snipe :disable t)
